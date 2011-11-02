@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>__init__.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  
+  <table cellspacing=0 cellpadding=0>
+  <thead>
+    <tr>
+      <th class=docs><h1>__init__.py</h1></th>
+      <th class=code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr id='section-0'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-0">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">_api_cache</span> <span class="o">=</span> <span class="p">{}</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-1'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-1">#</a>
+        </div>
+        <h1>_loadAPIModule</h1>
+<p>Take an entry from one of the package bridges, and lazy-load it into _api_cache.
+Callback to lazy-load an API module in tuple(path, item) format.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">def</span> <span class="nf">_loadAPIModule</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-2'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-2">#</a>
+        </div>
+        <p>global _api_cache</p>
+<p>if entry not in _api_cache:
+if isinstance(entry, tuple):
+path, name = entry
+mod = <strong>import</strong>(path, globals(), locals(), [name])
+_api_cache[entry] = getattr(mod, name)
+elif isinstance(entry, basestring):
+mod = <strong>import</strong>(entry, globals(), locals(), ['*'])
+_api_cache[entry] = mod
+else:
+logging.error('Lazyloader failed to resolve module for shortcut: "'+str(entry)+'".')
+raise ImportError, "Could not resolve module for entry '"+str(entry)+"'."</p>
+<p>return _api_cache[entry]</p>
+<h2>UtilStruct</h2>
+<h1>Base class for apptools' utility datastructures, which were shamelessly taken from <a href="http://github.com:sgammon/ProvidenceClarity">Providence/Clarity</a></h1>
+<p>class UtilStruct(object):</p>
+<p>Abstract class for a utility object.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	
+	<span class="n">_type</span> <span class="o">=</span> <span class="bp">None</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-3'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-3">#</a>
+        </div>
+        <h1>Init -- Accept structure fill</h1>
+<p>If handed a dictionary (or something) in init, send it to fillStructure (and do the same for kwargs).</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">struct</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-4'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-4">#</a>
+        </div>
+        <p>if struct is not None:
+self.fillStructure(struct)
+else:
+if len(kwargs) &gt; 0:
+self.fillStructure(**kwargs)</p>
+<p>@classmethod
+def _type(cls):
+return cls._type</p>
+<p>@classmethod
+def serialize(cls):
+return self.<strong>dict</strong></p>
+<p>@classmethod
+def deserialize(cls, structure):
+return cls(structure)</p>
+<h2>DictProxy</h2>
+<h1>Take a data structure, and wrap it in an object so that it's accessible as ds[x] via getitem/setitem.</h1>
+<p>class DictProxy(UtilStruct):</p>
+<p>Handy little object that takes a dict and makes it accessible via var[item] and var.item formats. Also handy for caching.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-5'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-5">#</a>
+        </div>
+        <h1>Init</h1>
+<p>Set it as an object directly instead of storing in _entries.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">fillStructure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">struct</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-6'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-6">#</a>
+        </div>
+        <p>if struct is not None:
+if isinstance(struct, dict):
+for k, v in struct.items():
+setattr(self, k, v)</p>
+<p>elif isinstance(struct, list):
+for k, v in struct:
+setattr(self, k, v)
+if len(kwargs) &gt; 0:
+for k, v in kwargs.items():
+setattr(self, k, v)</p>
+<p>def <strong>getitem</strong>(self, name):
+if name in self.<strong>dict</strong>:
+return getattr(self, name)
+else:
+raise AttributeError</p>
+<p>def <strong>setitem</strong>(self, name, value):
+setattr(self, name, value)</p>
+<p>def <strong>delitem</strong>(self, name):
+if name in self.<strong>dict</strong>:
+del self.<strong>dict</strong>[name]
+else:
+raise AttributeError</p>
+<p>def <strong>contains</strong>(self, name):
+return name in self.<strong>dict</strong></p>
+<h2>Utiliy Methods</h2>
+<p>def items(self):
+return [(k, v) for k, v in self.<strong>dict</strong>.items()]</p>
+<h2>ObjectProxy</h2>
+<h1>Take a datastructure and wrap it in an object that makes it accessible via ds.x, using getattr/setattr.</h1>
+<p>class ObjectProxy(UtilStruct):</p>
+<p>Same handy object as above, but stores the entries in an _entries attribute rather than the class dict.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="n">_entries</span> <span class="o">=</span> <span class="p">{}</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-7'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-7">#</a>
+        </div>
+        <p>If handed a dictionary or kwargs, fill _entries with e[k] = v. A list will do the same and be interpreted as a list of tuples in (k, v) format.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">fillStruct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fill</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-8'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-8">#</a>
+        </div>
+        <p>if fill is not None:
+if isinstance(fill, dict):
+for k, v in fill.items():
+self._entries[k] = v
+elif isinstance(fill, list):
+for k, v in fill:
+self._entries[k] = v
+if len(kwargs) &gt; 0:
+for k, v in kwargs.items():
+self._entries[k] = v</p>
+<p>def <strong>getitem</strong>(self, name):
+if name in self._entries:
+return self._entries[name]
+else:
+raise KeyError</p>
+<p>def <strong>delitem</strong>(self, name):
+if name in self._entries:
+del self._entries[name]</p>
+<p>def <strong>getattr</strong>(self, name):
+return self._entries.get(name)</p>
+<p>def <strong>contains</strong>(self, name):
+return name in self._entries</p>
+<p>def <strong>delattr</strong>(self, name):
+if name in self._entries:
+del self._entries[name]</p>
+<h2>Utiliy Methods</h2>
+<p>def items(self):
+return [(k, v) for k, v in self._entries.items()]</p>
+<h2>CallbackProxy</h2>
+<h1>Take a datastructure and wrap it in an object, such that when a key is requested via ds.x or ds[x], a function is called with that key's value, and provide the return value (i.e. return callback(d[x])).</h1>
+<p>class CallbackProxy(ObjectProxy):</p>
+<p>Handy little object that takes a dict and makes it accessible via var[item], but returns the result of an invoked callback(item).</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="n">callback</span> <span class="o">=</span> <span class="bp">None</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-9'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-9">#</a>
+        </div>
+        <p>Map the callback and fillStructure if we get one via <code>struct</code>.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">struct</span><span class="o">=</span><span class="p">{},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-10'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-10">#</a>
+        </div>
+        <p>self.callback = callback</p>
+<p>if struct is not None:
+self._entries = struct
+else:
+if len(kwargs) &gt; 0:
+self._entries = dict([i for i in struct.items()]+[i for i in kwargs.items()])</p>
+<p>def <strong>getitem</strong>(self, name):
+if name in self._entries:
+return self.callback(self._entries.get(name))
+else:
+raise KeyError</p>
+<p>def <strong>getattr</strong>(self, name):
+return self.callback(self._entries.get(name))</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>

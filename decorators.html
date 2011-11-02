@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>decorators.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  
+  <table cellspacing=0 cellpadding=0>
+  <thead>
+    <tr>
+      <th class=docs><h1>decorators.py</h1></th>
+      <th class=code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr id='section-0'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-0">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-1'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-1">#</a>
+        </div>
+        <p>Base Imports</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">apptools.util</span> <span class="kn">import</span> <span class="n">DictProxy</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-2'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-2">#</a>
+        </div>
+        <h1>RemoteMethodDecorator</h1>
+<p>This base class is for decorators that annotate remote service methods
+Indicates a class that can be used to decorate a remote method (a function on a class that responds to a remote API request).</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">RemoteMethodDecorator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-3'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-3">#</a>
+        </div>
+        <p>args = None
+kwargs = None
+request = None
+service = None
+callback = None</p>
+<p>def <strong>init</strong>(self, <em>args, </em>*kwargs):</p>
+<p>Take in positional and keyword arguments when it is used as a decorator.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		
+		<span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-4'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-4">#</a>
+        </div>
+        <p>When the target remote method is called...</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-5'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-5">#</a>
+        </div>
+        <p>def wrapped(service_obj, request):</p>
+<p>Redirect the function call to our decorator's execute call (this enables us to do things like caching inside a decorator, by hijacking the remote method call and injecting a return value from the cache)...</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>			<span class="bp">self</span><span class="o">.</span><span class="n">callback</span> <span class="o">=</span> <span class="n">fn</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">service</span> <span class="o">=</span> <span class="n">service_obj</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">request</span>
+
+			<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="nb">dir</span><span class="p">(</span><span class="n">fn</span><span class="p">))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+				<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+		
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span> <span class="c"># &lt;-- redirect to our execute()</span>
+		
+		<span class="k">return</span> <span class="n">wrapped</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-6'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-6">#</a>
+        </div>
+        <p>Default decorator execution case: run the remote method (or, pass it down the chain to the next decorator) and return the result.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-7'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-7">#</a>
+        </div>
+        <p>return self.execute_remote()</p>
+<p>def execute_remote(self):</p>
+<p>Shortcut to execute the remote method/next decorator and return the result.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-8'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-8">#</a>
+        </div>
+        <p>Pleasant for debugging.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-9'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-9">#</a>
+        </div>
+        <p>return self.callback</p>
+<h2>Auditing Flags</h2>
+<h1>Monitor individual and aggregate request data, and log to datastore or memcache</h1>
+<p>class Monitor(RemoteMethodDecorator):</p>
+<p>Log remote requests when they happen, and optionally store stats/usage per API consumer in the datastore and memcache.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-10'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-10">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">execute_remote</span><span class="p">()</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-11'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-11">#</a>
+        </div>
+        <p>Set debug to true or false in the scope of a single remote method
+Set debug mode to true or false for a remote method. Adds extra debug flags to the response envelope and ups the logging level.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Debug</span><span class="p">(</span><span class="n">RemoteMethodDecorator</span><span class="p">):</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-12'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-12">#</a>
+        </div>
+        <p>def execute(self):
+return self.execute_remote()</p>
+<h1>Set the minimum log severity in the scope of a single remote method</h1>
+<p>class LogLevel(RemoteMethodDecorator):</p>
+<p>Manually set the logging level for a remote service method.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-13'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-13">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">execute_remote</span><span class="p">()</span>
+		
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-14'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-14">#</a>
+        </div>
+        <h1>Caching Flags</h1>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-15'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-15">#</a>
+        </div>
+        <p>Specify a method's caching policy for all caching layers.
+Indicate that the response from a remote method is cacheable locally on the browser side.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Cacheable</span><span class="p">(</span><span class="n">RemoteMethodDecorator</span><span class="p">):</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-16'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-16">#</a>
+        </div>
+        <p>def execute(self, <em>args, </em>*kwargs):
+return self.execute_remote()</p>
+<h1>Specify a method's caching policy for threadlocal/global layers.</h1>
+<p>class LocalCacheable(RemoteMethodDecorator):</p>
+<p>Indicate that the response from a remote method is cacheable in instance memory (fastcache).</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-17'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-17">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">execute_remote</span><span class="p">()</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-18'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-18">#</a>
+        </div>
+        <p>Specify a method's caching policy for memcaching.
+Indicate that the response from a remote method is memcacheable.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">MemCacheable</span><span class="p">(</span><span class="n">RemoteMethodDecorator</span><span class="p">):</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-19'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-19">#</a>
+        </div>
+        <p>def execute(self):
+return self.execute_remote()</p>
+<h2>Security Flags</h2>
+<h1>Specify that a remote service client cannot be on a blacklist in order to execute successfully.</h1>
+<p>class Blacklist(ServiceFlag):</p>
+<p>Indicate that a remote method must be matched against a blacklist.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-20'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-20">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">execute_remote</span><span class="p">()</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-21'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-21">#</a>
+        </div>
+        <p>Specify that a remote service client must be on a whitelist in order to execute successfully.
+Indicate that a remote method must be matched against a whitelist.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Blacklist</span><span class="p">(</span><span class="n">ServiceFlag</span><span class="p">):</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-22'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-22">#</a>
+        </div>
+        <p>def execute(self, <em>args, </em>*kwargs):
+return self.execute_remote()</p>
+<h1>Specify that a remote service client must authorize via an ACL or other grouping of users.</h1>
+<p>class Authorize(ServiceFlag):</p>
+<p>Indicate that a remote method requires authorization.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-23'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-23">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">execute_remote</span><span class="p">()</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-24'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-24">#</a>
+        </div>
+        <p>Specify that a remote service client must authenticate before executing remote methods.
+Indicate that a remote method requires authentication.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Authenticate</span><span class="p">(</span><span class="n">ServiceFlag</span><span class="p">):</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-25'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-25">#</a>
+        </div>
+        <p>def execute(self):
+return self.execute_remote()</p>
+<h1>Specify that a remote service method can be run by AppEngine-registered admins only.</h1>
+<p>class AdminOnly(ServiceFlag):</p>
+<p>Indicate that a remote method requires an admin to be logged in.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-26'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-26">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">execute_remote</span><span class="p">()</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-27'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-27">#</a>
+        </div>
+        <h1>Decorator shortcuts</h1>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-28'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-28">#</a>
+        </div>
+        <p>Audit decorators</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="n">audit</span> <span class="o">=</span> <span class="n">DictProxy</span><span class="p">({</span>
+
+	<span class="s">&#39;Monitor&#39;</span><span class="p">:</span> <span class="n">Monitor</span><span class="p">,</span>
+	<span class="s">&#39;Debug&#39;</span><span class="p">:</span> <span class="n">Debug</span><span class="p">,</span>
+	<span class="s">&#39;LogLevel&#39;</span><span class="p">:</span> <span class="n">LogLevel</span><span class="p">,</span>
+
+<span class="p">})</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-29'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-29">#</a>
+        </div>
+        <p>Caching decorators</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="n">caching</span> <span class="o">=</span> <span class="n">DictProxy</span><span class="p">({</span>
+
+	<span class="s">&#39;Cacheable&#39;</span><span class="p">:</span> <span class="n">Cacheable</span><span class="p">,</span>
+	<span class="s">&#39;LocalCacheable&#39;</span><span class="p">:</span> <span class="n">LocalCacheable</span><span class="p">,</span>
+	<span class="s">&#39;MemCacheable&#39;</span><span class="p">:</span> <span class="n">MemCacheable</span><span class="p">,</span>
+
+<span class="p">})</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-30'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-30">#</a>
+        </div>
+        <p>Security decorators</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="n">security</span> <span class="o">=</span> <span class="n">DictProxy</span><span class="p">({</span>
+
+	<span class="s">&#39;Authorize&#39;</span><span class="p">:</span> <span class="n">Authorize</span><span class="p">,</span>
+	<span class="s">&#39;Authenticate&#39;</span><span class="p">:</span> <span class="n">Authenticate</span><span class="p">,</span>
+	<span class="s">&#39;AdminOnly&#39;</span><span class="p">:</span> <span class="n">AdminOnly</span>
+
+<span class="p">})</span>
+
+</pre></div></pre></div>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>

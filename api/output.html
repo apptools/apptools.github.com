@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>output.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  
+  <table cellspacing=0 cellpadding=0>
+  <thead>
+    <tr>
+      <th class=docs><h1>output.py</h1></th>
+      <th class=code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr id='section-0'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-0">#</a>
+        </div>
+        <p>Core: Output</p>
+<p>Responsible for the task of finding and compiling templates to be sent to the browser.
+Two levels of caching are implemented here - in-memory handler caching and memcache.</p>
+<p>According to settings in the config.py, this module will attempt to load compiled
+template code from the handler first, memcache second, and at last resort will compile
+the template and store it in the cache.</p>
+<p>-sam (<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#115;&#97;&#109;&#64;&#109;&#111;&#109;&#101;&#110;&#116;&#117;&#109;&#46;&#105;&#111;">&#115;&#97;&#109;&#64;&#109;&#111;&#109;&#101;&#110;&#116;&#117;&#109;&#46;&#105;&#111;</a>)</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-1'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-1">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-2'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-2">#</a>
+        </div>
+        <h1>Base Imports</h1>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
+<span class="kn">import</span> <span class="nn">config</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">datetime</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-3'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-3">#</a>
+        </div>
+        <h1>Bootstrap Routine</h1>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">try</span><span class="p">:</span>
+	<span class="kn">import</span> <span class="nn">bootstrap</span>
+	<span class="n">bootstrap</span><span class="o">.</span><span class="n">AppBootstrapper</span><span class="o">.</span><span class="n">prepareImports</span><span class="p">()</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+	<span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&#39;Could not execute app bootstrapper.&#39;</span><span class="p">)</span>
+	<span class="k">pass</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">getmtime</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-4'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-4">#</a>
+        </div>
+        <h1>AppTools</h1>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">apptools</span> <span class="kn">import</span> <span class="n">AppException</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-5'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-5">#</a>
+        </div>
+        <h1>Webapp2 Imports</h1>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">webapp2</span> <span class="kn">import</span> <span class="n">cached_property</span>
+<span class="kn">from</span> <span class="nn">webapp2_extras.jinja2</span> <span class="kn">import</span> <span class="n">Jinja2</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-6'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-6">#</a>
+        </div>
+        <h1>Jinja2 Imports</h1>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">jinja2</span> <span class="kn">import</span> <span class="n">Environment</span> <span class="k">as</span> <span class="n">JEnvironment</span>
+<span class="kn">from</span> <span class="nn">jinja2</span> <span class="kn">import</span> <span class="n">ModuleLoader</span> <span class="k">as</span> <span class="n">JModuleLoader</span>
+<span class="kn">from</span> <span class="nn">jinja2</span> <span class="kn">import</span> <span class="n">FileSystemLoader</span> <span class="k">as</span> <span class="n">JFileSystemLoader</span>
+<span class="kn">from</span> <span class="nn">jinja2.exceptions</span> <span class="kn">import</span> <span class="n">TemplateNotFound</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-7'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-7">#</a>
+        </div>
+        <h1>Output Exception</h1>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">CoreOutputAPIException</span><span class="p">(</span><span class="n">AppException</span><span class="p">):</span>
+	<span class="k">pass</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-8'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-8">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">ModuleLoader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	
+	<span class="sd">&#39;&#39;&#39; Loads templates that have been compiled into Python modules. &#39;&#39;&#39;</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-9'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-9">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">templatemodule</span><span class="p">):</span>
+	
+		<span class="sd">&#39;&#39;&#39; Loads a template from a module. &#39;&#39;&#39;</span>
+		
+		<span class="bp">self</span><span class="o">.</span><span class="n">modules</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">templatemodule</span> <span class="o">=</span> <span class="n">templatemodule</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-10'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-10">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environment</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Loads a pre-compiled template, stored as Python code in a template module. &#39;&#39;&#39;</span>
+
+		<span class="k">if</span> <span class="nb">globals</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+			<span class="nb">globals</span> <span class="o">=</span> <span class="p">{}</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-11'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-11">#</a>
+        </div>
+        <p>Strip '/' and remove extension.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="n">filename</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">))</span>
+
+		<span class="k">if</span> <span class="n">filename</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-12'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-12">#</a>
+        </div>
+        <p>Store module to avoid unnecessary repeated imports.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>			<span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_module</span><span class="p">(</span><span class="n">environment</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+
+		<span class="n">tpl_vars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">environment</span><span class="p">)</span>
+
+		<span class="n">t</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">environment</span><span class="o">.</span><span class="n">template_class</span><span class="p">)</span>
+		<span class="n">t</span><span class="o">.</span><span class="n">environment</span> <span class="o">=</span> <span class="n">environment</span>
+		<span class="n">t</span><span class="o">.</span><span class="n">globals</span> <span class="o">=</span> <span class="nb">globals</span>
+		<span class="n">t</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">tpl_vars</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span>
+		<span class="n">t</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span>
+		<span class="n">t</span><span class="o">.</span><span class="n">blocks</span> <span class="o">=</span> <span class="n">tpl_vars</span><span class="p">[</span><span class="s">&#39;blocks&#39;</span><span class="p">]</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-13'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-13">#</a>
+        </div>
+        <p>render function and module</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="n">t</span><span class="o">.</span><span class="n">root_render_func</span> <span class="o">=</span> <span class="n">tpl_vars</span><span class="p">[</span><span class="s">&#39;root&#39;</span><span class="p">]</span>
+		<span class="n">t</span><span class="o">.</span><span class="n">_module</span> <span class="o">=</span> <span class="bp">None</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-14'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-14">#</a>
+        </div>
+        <p>debug and loader helpers</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="n">t</span><span class="o">.</span><span class="n">_debug_info</span> <span class="o">=</span> <span class="n">tpl_vars</span><span class="p">[</span><span class="s">&#39;debug_info&#39;</span><span class="p">]</span>
+		<span class="n">t</span><span class="o">.</span><span class="n">_uptodate</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">True</span>
+
+		<span class="k">return</span> <span class="n">t</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-15'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-15">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">get_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environment</span><span class="p">,</span> <span class="n">template</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Converts a template path to a package path and attempts import, or else raises Jinja2&#39;s TemplateNotFound. &#39;&#39;&#39;</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-16'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-16">#</a>
+        </div>
+        <p>Convert the path to a module name.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="n">module_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">templatemodule</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">template</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="s">&#39;.&#39;</span><span class="p">)</span>
+		<span class="n">prefix</span><span class="p">,</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">module_name</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">__import__</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;environment&#39;</span><span class="p">:</span> <span class="n">environment</span><span class="p">},</span> <span class="p">[</span><span class="n">obj</span><span class="p">]),</span> <span class="n">obj</span><span class="p">)</span>
+		<span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
+			<span class="k">raise</span> <span class="n">TemplateNotFound</span><span class="p">(</span><span class="n">template</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-17'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-17">#</a>
+        </div>
+        <p>Source caching</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">def</span> <span class="nf">get_tdata_from_fastcache</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">do_log</span><span class="p">):</span>
+
+	<span class="sd">&#39;&#39;&#39; Get template data from fastcache (instance memory). &#39;&#39;&#39;</span>
+
+	<span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">t_data</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">do_log</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;OUTPUT_LOADER: Found bytecode in fastcache memory under key </span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">name</span><span class="p">))</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">.&#39;</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">t_data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+	<span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-18'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-18">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">def</span> <span class="nf">set_tdata_to_fastcache</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">do_log</span><span class="p">):</span>
+	
+	<span class="sd">&#39;&#39;&#39; Save template data to fastcache (instance memory). &#39;&#39;&#39;</span>
+	
+	<span class="n">t_data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+	<span class="k">if</span> <span class="n">do_log</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;OUTPUT_LOADER: Set template </span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s"> to fastcache memory.&#39;</span><span class="p">)</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-19'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-19">#</a>
+        </div>
+        <p>Memcache API loader</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">def</span> <span class="nf">get_tdata_from_memcache</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">do_log</span><span class="p">):</span>
+	
+	<span class="sd">&#39;&#39;&#39; Get template data from memcache. &#39;&#39;&#39;</span>
+	
+	<span class="n">data</span> <span class="o">=</span> <span class="n">memcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;Core//Output//Template-&#39;</span><span class="o">+</span><span class="n">name</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">do_log</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;OUTPUT_LOADER: Found bytecode in memcache under key </span><span class="se">\&#39;</span><span class="s">tdata-&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">.&#39;</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">data</span>
+	<span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-20'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-20">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">def</span> <span class="nf">set_tdata_to_memcache</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">do_log</span><span class="p">):</span>
+	
+	<span class="sd">&#39;&#39;&#39; Set template data to memcache. &#39;&#39;&#39;</span>
+	
+	<span class="n">memcache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;Core//Output//Template-&#39;</span><span class="o">+</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">do_log</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;OUTPUT_LOADER: Set template </span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s"> to memcache under key </span><span class="se">\&#39;</span><span class="s">Core//Output//Template-&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">.&#39;</span><span class="p">)</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-21'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-21">#</a>
+        </div>
+        <p>Loader class</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">CoreOutputLoader</span><span class="p">(</span><span class="n">JFileSystemLoader</span><span class="p">):</span>
+	
+	<span class="sd">&#39;&#39;&#39; Loads templates and automatically inserts bytecode caching logic for both fastcache (instance memory) and memcache. &#39;&#39;&#39;</span>
+	
+	<span class="nd">@cached_property</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-22'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-22">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">devConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Cached dev configuration. &#39;&#39;&#39;</span>
+		
+		<span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;apptools.system.dev&#39;</span><span class="p">)</span>
+		
+	<span class="nd">@cached_property</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-23'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-23">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">loaderConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Cached template loader configuration. &#39;&#39;&#39;</span>
+		
+		<span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;apptools.project.output.template_loader&#39;</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-24'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-24">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">get_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environment</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Overrides Jinja&#39;s default FileSystemLoader get_source to provide it via memcache or instance memory, if available. &#39;&#39;&#39;</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-25'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-25">#</a>
+        </div>
+        <p>Load config</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="n">dev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">devConfig</span>
+		<span class="n">y_cfg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loaderConfig</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-26'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-26">#</a>
+        </div>
+        <p>Encode in Base64</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="n">b64_name</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-27'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-27">#</a>
+        </div>
+        <p>Debug logging</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="k">if</span> <span class="n">y_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;debug&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span> <span class="n">do_log</span> <span class="o">=</span> <span class="bp">True</span>
+		<span class="k">else</span><span class="p">:</span> <span class="n">do_log</span> <span class="o">=</span> <span class="bp">False</span>
+		<span class="k">if</span> <span class="n">do_log</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;OUTPUT_LOADER: Template Loader received request for name </span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">.&#39;</span><span class="p">)</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-28'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-28">#</a>
+        </div>
+        <p>Don't do caching if we're in dev mode</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="k">if</span> <span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">loaderConfig</span><span class="p">[</span><span class="s">&#39;force&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-29'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-29">#</a>
+        </div>
+        <p>Try the in-memory supercache</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>			<span class="k">if</span> <span class="n">y_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_memory_cache&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span> <span class="n">source</span> <span class="o">=</span> <span class="n">get_tdata_from_fastcache</span><span class="p">(</span><span class="n">b64_name</span><span class="p">,</span> <span class="n">do_log</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span> <span class="n">source</span> <span class="o">=</span> <span class="bp">None</span>
+		
+			<span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="c"># Not found in fastcache</span>
+		
+				<span class="k">if</span> <span class="n">do_log</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;OUTPUT_LOADER: Template not found in fastcache.&#39;</span><span class="p">)</span>
+			</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-30'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-30">#</a>
+        </div>
+        <p>Fallback to memcache</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>				<span class="k">if</span> <span class="n">y_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_memcache&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span> <span class="n">source</span> <span class="o">=</span> <span class="n">get_tdata_from_memcache</span><span class="p">(</span><span class="n">b64_name</span><span class="p">,</span> <span class="n">do_log</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-31'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-31">#</a>
+        </div>
+        <p>Fallback to regular loader, then cache</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>				<span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="c"># Not found in memcache</span>
+				
+					<span class="k">if</span> <span class="n">do_log</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;OUTPUT_LOADER: Template not found in memcache.&#39;</span><span class="p">)</span>
+					<span class="n">source</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">uptodate</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">CoreOutputLoader</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">environment</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+				
+					<span class="k">if</span> <span class="n">y_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_memcache&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">False</span><span class="p">:</span>
+						<span class="n">set_tdata_to_memcache</span><span class="p">(</span><span class="n">b64_name</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">do_log</span><span class="p">)</span>
+				
+					<span class="k">if</span> <span class="n">y_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_memory_cache&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">False</span><span class="p">:</span>
+						<span class="n">set_tdata_to_fastcache</span><span class="p">(</span><span class="n">b64_name</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">do_log</span><span class="p">)</span>
+	
+		<span class="k">else</span><span class="p">:</span> <span class="c">## In dev mode, compile everything every time</span>
+		
+			<span class="n">source</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">uptodate</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">CoreOutputLoader</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">environment</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+			<span class="k">return</span> <span class="n">source</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">uptodate</span>
+			</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-32'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-32">#</a>
+        </div>
+        <p>Return compiled template code</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="k">return</span> <span class="n">source</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">True</span>
+
+</pre></div></pre></div>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>

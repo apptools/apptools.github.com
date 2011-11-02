@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>assets.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  
+  <table cellspacing=0 cellpadding=0>
+  <thead>
+    <tr>
+      <th class=docs><h1>assets.py</h1></th>
+      <th class=code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr id='section-0'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-0">#</a>
+        </div>
+        <p>Core: Assets</p>
+<p>Responsible for reading the assets config (see config/assets.py) and outputting asset
+URLs based on the config &amp; resource requested. There is support for switching the
+absolute URL base to a CDN hostname, or multiple CDN hostnames. There's also support
+for cachebusting via key value pairs, and switching to minified assets.</p>
+<p>-sam (<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#115;&#97;&#109;&#64;&#109;&#111;&#109;&#101;&#110;&#116;&#117;&#109;&#46;&#105;&#111;">&#115;&#97;&#109;&#64;&#109;&#111;&#109;&#101;&#110;&#116;&#117;&#109;&#46;&#105;&#111;</a>)</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-1'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-1">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-2'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-2">#</a>
+        </div>
+        <h1>Base Imports</h1>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">config</span> <span class="kn">as</span> <span class="nn">cfg</span>
+<span class="kn">from</span> <span class="nn">config</span> <span class="kn">import</span> <span class="n">config</span>
+<span class="kn">from</span> <span class="nn">webapp2</span> <span class="kn">import</span> <span class="n">cached_property</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-3'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-3">#</a>
+        </div>
+        <h1>Momentum Imports</h1>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">apptools</span> <span class="kn">import</span> <span class="n">AppException</span>
+<span class="kn">from</span> <span class="nn">apptools.api</span> <span class="kn">import</span> <span class="n">CoreAPI</span>
+<span class="kn">from</span> <span class="nn">apptools.api</span> <span class="kn">import</span> <span class="n">HandlerMixin</span>
+
+<span class="kn">from</span> <span class="nn">apptools.api.output</span> <span class="kn">import</span> <span class="n">CoreOutputAPIException</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-4'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-4">#</a>
+        </div>
+        <h1>Global Vars</h1>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="n">_img_url_cache</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">_asset_url_cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-5'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-5">#</a>
+        </div>
+        <h1>== Assets Module Exceptions ==</h1>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">AssetException</span><span class="p">(</span><span class="n">CoreOutputAPIException</span><span class="p">):</span> <span class="k">pass</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-6'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-6">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">InvalidAssetType</span><span class="p">(</span><span class="n">AssetException</span><span class="p">):</span> <span class="k">pass</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-7'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-7">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">InvalidAssetEntry</span><span class="p">(</span><span class="n">AssetException</span><span class="p">):</span> <span class="k">pass</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-8'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-8">#</a>
+        </div>
+        <p>Responds to requests for image and asset URLs, reads asset configuration &amp; manages caching of asset URLs.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">CoreAssetsAPI</span><span class="p">(</span><span class="n">CoreAPI</span><span class="p">):</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-9'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-9">#</a>
+        </div>
+        <p>methods = ['script_url', 'style_url', 'asset_url']</p>
+<p>@cached_property
+def _AssetConfig(self):</p>
+<p>''' Cached access to the Assets config. '''</p>
+<p>return config.get('apptools.project.assets')</p>
+<p>@cached_property
+def _OutputConfig(self):</p>
+<p>''' Cached access to the Output config. '''</p>
+<p>return config.get('apptools.project.output')</p>
+<p>def _log(self, message, severity='info'):</p>
+<p>''' Takes in log messages from the API and outputs them according to config. (Errors are always logged) '''</p>
+<p>if severity == 'debug' and self._AssetConfig.get('debug', False) == True:
+if self._AssetConfig.get('verbose', False) == True or cfg.debug == True:
+logging.info('CoreAssets: '+str(message))
+else:
+logging.debug('CoreAssets: '+str(message))</p>
+<p>elif severity == 'info' and self._AssetConfig.get('debug', False) == True:
+logging.info('CoreAssets: '+str(message))</p>
+<p>elif severity == 'error':
+logging.error('CoreAssets: '+str(message))</p>
+<p>return</p>
+<p>def script_url(self, name, module=None, prefix='static', version=None, minify=False, version_by_getvar=False, **kwargs):</p>
+<p>''' Return a URL for a script. '''</p>
+<p>return self.asset_url('js', name, module, prefix, version, minify, version_by_getvar, **kwargs)</p>
+<p>def style_url(self, name, module=None, prefix='static', version=None, minify=False, version_by_getvar=False, **kwargs):</p>
+<p>''' Return a URL for a stylesheet. '''</p>
+<p>return self.asset_url('style', name, module, prefix, version, minify, version_by_getvar, **kwargs)</p>
+<p>def ext_url(self, name, module=None, prefix='static', version=None, minify=False, version_by_getvar=False, **kwargs):</p>
+<p>''' Return a URL for a nonregular asset. '''</p>
+<p>return self.asset_url('ext', name, module, prefix, version, minify, version_by_getvar, **kwargs)</p>
+<p>def img_url(self, path, name):</p>
+<p>''' Return a simple URL for an image. (Note: does not use assets config - images are not registered assets) '''</p>
+<p>global img_url_cache</p>
+<p>url_fragments = []
+gervars = {}
+if self._OutputConfig.get('assets', {}).get('serving_mode', 'local') == 'cdn':
+url_fragments.append('http://')
+if isinstance(self._OutputConfig['assets']['cdn_prefix'], list):
+cdnprefix = random.choice(self._OutputConfig['assets']['cdn_prefix'])
+else:
+cdnprefix = self._OutputConfig['assets']['cdn_prefix']
+url_fragments.append([cdnprefix, 'img', 'static']+[i for i in path.split('/')]+[''])
+else:
+url_fragments.append('/')
+url_fragments.append(['assets', 'img', 'static']+[i for i in path.split('/')]+[''])</p>
+<p>url_fragments.append(name)</p>
+<p>return reduce(lambda x, y: str(x)+str(y), map(lambda x: isinstance(x, list) and '/'.join(x) or x, url_fragments))</p>
+<p>def asset_url(self, _type, name, module, prefix, version, minify, version_by_getvar, **kwargs):</p>
+<p>''' Return a URL for an asset, according to the current configuration. '''</p>
+<p>global _asset_url_cache
+identifier = (_type, name, module, prefix, version, minify, version_by_getvar)
+if identifier in _asset_url_cache:
+return _asset_url_cache[identifier]
+else:</p>
+<p>asset = None
+module_path = None
+module_config = {}</p>
+<p>if _type not in self._AssetConfig:
+raise InvalidAssetType, "Asset type '"+str(_type)+"' is invalid for name '"+str(name)+"' in module '"+str(module)+"'."</p>
+<h1>Grab config and find requested asset</h1>
+<p>if _type in self._AssetConfig:
+if name in self._AssetConfig[_type]:
+asset = self._AssetConfig[_type][name]
+else:
+for entry in self._AssetConfig[_type]:
+if isinstance(entry, tuple):
+if entry[0] == module:</p>
+<p>if 'config' in self._AssetConfig[_type][(module, entry[1])]:
+asset = self._AssetConfig[_type][(module, entry[1])]['assets'].get(name, False)
+module_config = self._AssetConfig[_type][(module, entry[1])].get('config', {})
+else:
+asset = self._AssetConfig[_type][(module, entry[1])].get(name, False)</p>
+<p>if asset is not False:
+module_path = entry[1]</p>
+<p>if asset is False:
+raise InvalidAssetEntry, "Could not resolve asset '"+str(name)+"' under VALID module '"+str(module)+"'."</p>
+<p>if asset is not None and isinstance(asset, dict):</p>
+<h1>Start building asset URL</h1>
+<p>filename = []
+query_string = {}
+if self._OutputConfig['assets']['serving_mode'] == 'local':
+asset_url = ['assets', _type, prefix, module_path, ('.', filename)]
+else:
+asset_url = [_type, prefix, module_path, ('.', filename)]
+minify = minify or self._OutputConfig['assets'].get('minified', False)</p>
+<h2>1: Consider absolute assets</h2>
+<p>if 'absolute' in asset:
+abs_url = asset.get('scheme', 'http')+'://'</p>
+<p>if minify and 'min' in asset and isinstance(asset['min'], basestring):
+return abs_url+asset.get('min')
+else:
+return asset.get('absolute')</p>
+<h2>2: Consider relative assets</h2>
+<p>else:</p>
+<h2>2.1: Consider path</h2>
+<p>if 'path' in asset:</p>
+<h3>Consider version</h3>
+<p>if version is not None or 'version' in asset:
+if version is None: version = asset['version']</p>
+<p>version_mode = 'filename'
+if version_by_getvar is False:
+if 'version_mode' in asset or 'version_mode' in module_config:
+if 'version_mode' in asset:
+version_mode = asset['version_mode']
+else:
+version_mode = module_config['version_mode']
+else:
+version_mode = 'getvar'</p>
+<p>if version_mode == 'filename':
+filename.append(str(version))
+elif version_mode == 'getvar':
+query_string['v'] = str(version)</p>
+<h3>Minification in path mode is a path</h3>
+<p>if minify and 'min' in asset and isinstance(asset['min'], basestring):
+query_string['m'] = '1'
+pathspec = asset['min'].split('/')
+filename += pathspec[-1].split('.')</p>
+<h3>If there's no minification and we have a path, use it</h3>
+<p>else:
+pathspec = asset['path'].split('/')
+filename += pathspec[-1].split('.')</p>
+<p>asset_url.insert(-1, ('/', pathspec[0:-1]))</p>
+<h2>2.2: Consider no-path</h2>
+<p>else:</p>
+<p>if 'name' not in asset:
+filename.append(name)
+else:
+filename.append(asset['name'])</p>
+<h3>Minification in no-path mode is a boolean (appends .min)</h3>
+<p>if minify and 'min' in asset and isinstance(asset['min'], bool):
+query_string['m'] = '1'
+filename.append('min')</p>
+<h3>Consider version</h3>
+<p>if version is not None or 'version' in asset:
+if version is None: version = asset['version']</p>
+<p>version_mode = 'filename'
+if version_by_getvar is False:
+if 'version_mode' in asset or 'version_mode' in module_config:
+if 'version_mode' in asset:
+version_mode = asset['version_mode']
+else:
+version_mode = module_config['version_mode']
+else:
+version_mode = 'getvar'</p>
+<p>if version_mode == 'filename':
+filename.append(str(version))
+elif version_mode == 'getvar':
+query_string['v'] = str(version)</p>
+<h3>Consider explicit extension</h3>
+<p>if 'extension' in asset:
+filename.append(asset['extension'])</p>
+<h3>Consider implicit extension</h3>
+<p>else:
+if _type == 'style':
+filename.append('css')
+elif _type == 'js':
+filename.append('js')</p>
+<h2>2.3: Consider arbitrary query string entries</h2>
+<p>if len(kwargs) &gt; 0:
+for key, value in kwargs.items():
+query_string[key] = str(value)</p>
+<p>self._log('Asset URL = '+str(asset_url), 'info')
+self._log('Query String = '+str(query_string), 'debug')</p>
+<h2>2.4: Build relative asset URL</h2>
+<p>if len(query_string) &gt; 0 and self._OutputConfig['assets']['serving_mode'] != 'cdn':</p>
+<p>compiled_url = reduce(lambda x, y: x+y, ['/', '/'.join(map(lambda x: isinstance(x, tuple) and x[0].join(x[1]) or x, filter(lambda x: x not in [True, False, None], asset_url))), '?', '&amp;'.join([str(k)+'='+str(v) for k, v in query_string.items()])])</p>
+<p>else:
+compiled_url = reduce(lambda x, y: x+y, ['/', '/'.join(map(lambda x: isinstance(x, tuple) and x[0].join(x[1]) or x, filter(lambda x: x not in [True, False, None], asset_url)))])</p>
+<p>if compiled_url is not None and isinstance(compiled_url, basestring) and len(compiled_url) &gt; 0:</p>
+<p>if self._OutputConfig['assets']['serving_mode'] == 'local':
+if cfg.debug is not True:
+_asset_url_cache[identifier] = compiled_url
+return compiled_url</p>
+<p>elif self._OutputConfig['assets']['serving_mode'] == 'cdn':</p>
+<p>if isinstance(self._OutputConfig['assets']['cdn_prefix'], list):
+cdnprefix = random.choice(self._OutputConfig['assets']['cdn_prefix'])
+else:
+cdnprefix = self._OutputConfig['assets']['cdn_prefix']</p>
+<p>if cfg.debug is not True:
+_asset_url_cache[identifier] = ''.join(['http://', cdnprefix]+[compiled_url])
+return ''.join(['http://', cdnprefix]+[compiled_url])</p>
+<p>return compiled_url</p>
+<p>else:
+if not isinstance(asset, dict):
+raise InvalidAssetEntry, "Could not resolve non-mapping asset by the name of '"+str(name)+"'. Asset value: '"+str(asset)+"'."</p>
+<p>if module not in c[_type] and name not in c[_type]:
+raise InvalidAssetEntry, "Could not resolve asset '"+str(name)+"' in module '"+str(module)+"'."</p>
+<p>_api = CoreAssetsAPI()
+class AssetsMixin(HandlerMixin):</p>
+<p>Bridge the Core Assets API to methods on a handler.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="n">get_img_asset</span> <span class="o">=</span> <span class="n">_api</span><span class="o">.</span><span class="n">img_url</span>
+	<span class="n">get_style_asset</span> <span class="o">=</span> <span class="n">_api</span><span class="o">.</span><span class="n">style_url</span>
+	<span class="n">get_script_asset</span> <span class="o">=</span> <span class="n">_api</span><span class="o">.</span><span class="n">script_url</span>
+	<span class="n">get_asset</span> <span class="o">=</span> <span class="n">_api</span><span class="o">.</span><span class="n">asset_url</span>
+
+</pre></div></pre></div>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>

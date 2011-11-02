@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>services.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  
+  <table cellspacing=0 cellpadding=0>
+  <thead>
+    <tr>
+      <th class=docs><h1>services.py</h1></th>
+      <th class=code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr id='section-0'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-0">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-1'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-1">#</a>
+        </div>
+        <p>Basic imports</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">config</span>
+<span class="kn">import</span> <span class="nn">webapp2</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">datetime</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-2'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-2">#</a>
+        </div>
+        <p>Resolve JSON adapter</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">try</span><span class="p">:</span>
+	<span class="kn">import</span> <span class="nn">json</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="kn">from</span> <span class="nn">django.utils</span> <span class="kn">import</span> <span class="n">json</span>
+	<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+		<span class="kn">import</span> <span class="nn">simplejson</span> <span class="kn">as</span> <span class="nn">json</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-3'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-3">#</a>
+        </div>
+        <p>ProtoRPC imports</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">import</span> <span class="nn">protorpc</span>
+<span class="kn">from</span> <span class="nn">protorpc</span> <span class="kn">import</span> <span class="n">remote</span>
+<span class="kn">from</span> <span class="nn">protorpc</span> <span class="kn">import</span> <span class="n">protojson</span>
+<span class="kn">from</span> <span class="nn">protorpc</span> <span class="kn">import</span> <span class="n">messages</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-4'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-4">#</a>
+        </div>
+        <p>Message imports</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">protorpc.messages</span> <span class="kn">import</span> <span class="n">Field</span>
+<span class="kn">from</span> <span class="nn">protorpc.messages</span> <span class="kn">import</span> <span class="n">Variant</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-5'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-5">#</a>
+        </div>
+        <p>Service handlers</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">protorpc.webapp</span> <span class="kn">import</span> <span class="n">service_handlers</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-6'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-6">#</a>
+        </div>
+        <p>Datastructures</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">apptools.util</span> <span class="kn">import</span> <span class="n">DictProxy</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-7'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-7">#</a>
+        </div>
+        <p>Decorator imports</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">apptools.decorators</span> <span class="kn">import</span> <span class="n">audit</span>
+<span class="kn">from</span> <span class="nn">apptools.decorators</span> <span class="kn">import</span> <span class="n">caching</span>
+<span class="kn">from</span> <span class="nn">apptools.decorators</span> <span class="kn">import</span> <span class="n">security</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-8'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-8">#</a>
+        </div>
+        <p>Extras import</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">webapp2_extras</span> <span class="kn">import</span> <span class="n">protorpc</span> <span class="k">as</span> <span class="n">proto</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-9'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-9">#</a>
+        </div>
+        <p>Service layer middleware object cache</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="n">_middleware_cache</span> <span class="o">=</span> <span class="p">{}</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-10'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-10">#</a>
+        </div>
+        <h1>Service flags</h1>
+<p>Decorate remote methods with these flags to annotate them with specific policies/functionality.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="n">flags</span> <span class="o">=</span> <span class="n">DictProxy</span><span class="p">({</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-11'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-11">#</a>
+        </div>
+        <p>Decorators related to logging/backend output</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="s">&#39;audit&#39;</span><span class="p">:</span> <span class="n">DictProxy</span><span class="p">({</span>
+		<span class="s">&#39;monitor&#39;</span><span class="p">:</span> <span class="n">audit</span><span class="o">.</span><span class="n">Monitor</span><span class="p">,</span>
+		<span class="s">&#39;debug&#39;</span><span class="p">:</span> <span class="n">audit</span><span class="o">.</span><span class="n">Debug</span><span class="p">,</span>
+		<span class="s">&#39;loglevel&#39;</span><span class="p">:</span> <span class="n">audit</span><span class="o">.</span><span class="n">LogLevel</span><span class="p">,</span>
+	<span class="p">}),</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-12'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-12">#</a>
+        </div>
+        <p>Decorators related to caching, for performance</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="s">&#39;caching&#39;</span><span class="p">:</span> <span class="n">DictProxy</span><span class="p">({</span>
+		<span class="s">&#39;local&#39;</span><span class="p">:</span> <span class="n">caching</span><span class="o">.</span><span class="n">LocalCacheable</span><span class="p">,</span>
+		<span class="s">&#39;memcache&#39;</span><span class="p">:</span> <span class="n">caching</span><span class="o">.</span><span class="n">MemCacheable</span><span class="p">,</span>
+		<span class="s">&#39;cacheable&#39;</span><span class="p">:</span> <span class="n">caching</span><span class="o">.</span><span class="n">Cacheable</span><span class="p">,</span>
+	<span class="p">}),</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-13'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-13">#</a>
+        </div>
+        <p>Decorators related to access &amp; security</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="s">&#39;security&#39;</span><span class="p">:</span> <span class="n">DictProxy</span><span class="p">({</span>
+		<span class="s">&#39;authorize&#39;</span><span class="p">:</span> <span class="n">security</span><span class="o">.</span><span class="n">Authorize</span><span class="p">,</span>
+		<span class="s">&#39;authenticate&#39;</span><span class="p">:</span> <span class="n">security</span><span class="o">.</span><span class="n">Authenticate</span><span class="p">,</span>
+		<span class="s">&#39;admin&#39;</span><span class="p">:</span> <span class="n">security</span><span class="o">.</span><span class="n">AdminOnly</span>
+	<span class="p">})</span>
+
+<span class="p">})</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-14'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-14">#</a>
+        </div>
+        <h1>VariantField</h1>
+<p>A hack that allows a fully-variant field in ProtoRPC message classes.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">VariantField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+
+	<span class="sd">&#39;&#39;&#39; Field definition for a completely variant field. &#39;&#39;&#39;</span>
+
+	<span class="n">VARIANTS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">([</span><span class="n">Variant</span><span class="o">.</span><span class="n">DOUBLE</span><span class="p">,</span> <span class="n">Variant</span><span class="o">.</span><span class="n">FLOAT</span><span class="p">,</span> <span class="n">Variant</span><span class="o">.</span><span class="n">BOOL</span><span class="p">,</span>
+						  <span class="n">Variant</span><span class="o">.</span><span class="n">INT64</span><span class="p">,</span> <span class="n">Variant</span><span class="o">.</span><span class="n">UINT64</span><span class="p">,</span> <span class="n">Variant</span><span class="o">.</span><span class="n">SINT64</span><span class="p">,</span>
+						  <span class="n">Variant</span><span class="o">.</span><span class="n">INT32</span><span class="p">,</span> <span class="n">Variant</span><span class="o">.</span><span class="n">UINT32</span><span class="p">,</span> <span class="n">Variant</span><span class="o">.</span><span class="n">SINT32</span><span class="p">,</span>
+						  <span class="n">Variant</span><span class="o">.</span><span class="n">STRING</span><span class="p">,</span> <span class="n">Variant</span><span class="o">.</span><span class="n">MESSAGE</span><span class="p">,</span> <span class="n">Variant</span><span class="o">.</span><span class="n">BYTES</span><span class="p">,</span> <span class="n">Variant</span><span class="o">.</span><span class="n">ENUM</span><span class="p">])</span>
+
+	<span class="n">DEFAULT_VARIANT</span> <span class="o">=</span> <span class="n">Variant</span><span class="o">.</span><span class="n">STRING</span>
+
+	<span class="nb">type</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">long</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">Message</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-15'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-15">#</a>
+        </div>
+        <h1>Message Fields</h1>
+<p>A nice, universal mapping to all available ProtoRPC message field types.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="n">fields</span> <span class="o">=</span> <span class="n">DictProxy</span><span class="p">({</span>
+	
+	<span class="sd">&#39;&#39;&#39; Shortcut to all the available message fields. &#39;&#39;&#39;</span>
+	
+	<span class="s">&#39;Variant&#39;</span><span class="p">:</span> <span class="n">VariantField</span><span class="p">,</span>
+	<span class="s">&#39;Boolean&#39;</span><span class="p">:</span> <span class="n">messages</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">,</span>
+	<span class="s">&#39;Bytes&#39;</span><span class="p">:</span> <span class="n">messages</span><span class="o">.</span><span class="n">BytesField</span><span class="p">,</span>
+	<span class="s">&#39;Enum&#39;</span><span class="p">:</span> <span class="n">messages</span><span class="o">.</span><span class="n">EnumField</span><span class="p">,</span>
+	<span class="s">&#39;Float&#39;</span><span class="p">:</span> <span class="n">messages</span><span class="o">.</span><span class="n">FloatField</span><span class="p">,</span>
+	<span class="s">&#39;Integer&#39;</span><span class="p">:</span> <span class="n">messages</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">,</span>
+	<span class="s">&#39;Message&#39;</span><span class="p">:</span> <span class="n">messages</span><span class="o">.</span><span class="n">MessageField</span><span class="p">,</span>
+	<span class="s">&#39;String&#39;</span><span class="p">:</span> <span class="n">messages</span><span class="o">.</span><span class="n">StringField</span>
+	
+<span class="p">})</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-16'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-16">#</a>
+        </div>
+        <h1>Custom JSON encoder</h1>
+<p>This class overrides an internal ProtoRPC class so that we can properly package/unpackage API requests according to apptools' <strong>wire format</strong>.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">_MessageJSONEncoder</span><span class="p">(</span><span class="n">protojson</span><span class="o">.</span><span class="n">_MessageJSONEncoder</span><span class="p">):</span>
+	
+	<span class="sd">&#39;&#39;&#39; Custom JSON encoder for API request &amp; response messages. &#39;&#39;&#39;</span>
+	
+	<span class="n">indent</span> <span class="o">=</span> <span class="bp">None</span>
+	<span class="n">encoding</span> <span class="o">=</span> <span class="s">&#39;utf-8&#39;</span>
+	<span class="n">sort_keys</span> <span class="o">=</span> <span class="bp">True</span>
+	<span class="n">allow_nan</span> <span class="o">=</span> <span class="bp">True</span>
+	<span class="n">ensure_ascii</span> <span class="o">=</span> <span class="bp">True</span>
+	<span class="n">check_circular</span> <span class="o">=</span> <span class="bp">True</span>
+	<span class="n">skipkeys</span> <span class="o">=</span> <span class="bp">True</span>
+	<span class="n">use_decimal</span> <span class="o">=</span> <span class="bp">False</span>
+	
+	<span class="n">current_indent_level</span> <span class="o">=</span> <span class="mi">0</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-17'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-17">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+			</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-18'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-18">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Overrides JSONEncoder&#39;s default() method. &#39;&#39;&#39;</span>
+		
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+			<span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">Message</span><span class="p">):</span>
+			<span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+			<span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">all_fields</span><span class="p">():</span>
+				<span class="n">item</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">get_assigned_value</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="p">[],</span> <span class="p">()):</span>
+					<span class="n">result</span><span class="p">[</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">jsonForValue</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+					<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span> <span class="c"># for repeated values...</span>
+						<span class="n">result</span><span class="p">[</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">jsonForValue</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">item</span><span class="p">]</span>
+					
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">_MessageJSONEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">_MessageJSONEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+			
+		<span class="k">return</span> <span class="n">result</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-19'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-19">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">jsonForValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Return JSON for a given Python value. &#39;&#39;&#39;</span>
+		
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">basestring</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)):</span>
+			<span class="k">return</span> <span class="n">value</span>
+			
+		<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">time</span><span class="p">)):</span>
+			<span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+			
+		<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">Message</span><span class="p">):</span>
+			<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">all_fields</span><span class="p">():</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">jsonForValue</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+				
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-20'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-20">#</a>
+        </div>
+        <h1>AppJSONRPCMapper</h1>
+<p>Custom RPC mapper that properly unpacks JSONRPC requests according to apptools' <strong>wire format</strong>.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">AppJSONRPCMapper</span><span class="p">(</span><span class="n">service_handlers</span><span class="o">.</span><span class="n">JSONRPCMapper</span><span class="p">):</span>
+
+	<span class="sd">&#39;&#39;&#39; Custom JSONRPC Mapper for managing JSON API requests. &#39;&#39;&#39;</span>
+
+	<span class="n">_request</span> <span class="o">=</span> <span class="p">{</span>
+
+		<span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+		<span class="s">&#39;opts&#39;</span><span class="p">:</span> <span class="p">{},</span>
+		<span class="s">&#39;agent&#39;</span><span class="p">:</span> <span class="p">{}</span>
+
+	<span class="p">}</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-21'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-21">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">AppJSONRPCMapper</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-22'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-22">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">encode_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">struct</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Encode a request. &#39;&#39;&#39;</span>
+		
+		<span class="n">encoded</span> <span class="o">=</span> <span class="n">_MessageJSONEncoder</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">encoded</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-23'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-23">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">build_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Encode a response. &#39;&#39;&#39;</span>
+
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">response</span><span class="o">.</span><span class="n">check_initialized</span><span class="p">()</span>
+			<span class="n">envelope</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encode_request</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">envelope</span><span class="p">(</span><span class="n">handler</span><span class="o">.</span><span class="n">_response_envelope</span><span class="p">,</span> <span class="n">response</span><span class="p">))</span>
+
+		<span class="k">except</span> <span class="n">messages</span><span class="o">.</span><span class="n">ValidationError</span><span class="p">,</span> <span class="n">err</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">ResponseError</span><span class="p">(</span><span class="s">&#39;Unable to encode message: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">err</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">handler</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s">&#39;Content-Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;application/json&quot;</span>
+			<span class="n">handler</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">envelope</span><span class="p">)</span>
+			<span class="k">return</span> <span class="n">envelope</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-24'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-24">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">envelope</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wrap</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Wrap the result of the request in a descriptive, helpful envelope. &#39;&#39;&#39;</span>
+
+		<span class="n">sysconfig</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;apptools.project&#39;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+			<span class="n">debugflag</span> <span class="o">=</span> <span class="bp">True</span>
+
+		<span class="k">return</span> <span class="p">{</span>
+
+			<span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="n">wrap</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+			<span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;ok&#39;</span><span class="p">,</span>
+
+			<span class="s">&#39;response&#39;</span><span class="p">:</span> <span class="p">{</span>
+				<span class="s">&#39;content&#39;</span><span class="p">:</span> <span class="n">response</span><span class="p">,</span>
+				<span class="s">&#39;type&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+			<span class="p">},</span>
+
+			<span class="s">&#39;flags&#39;</span><span class="p">:</span> <span class="n">wrap</span><span class="p">[</span><span class="s">&#39;flags&#39;</span><span class="p">],</span>
+			<span class="s">&#39;platform&#39;</span><span class="p">:</span> <span class="p">{</span>
+				<span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;AppTools&#39;</span><span class="p">,</span>
+				<span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="p">[</span><span class="n">sysconfig</span><span class="p">[</span><span class="s">&#39;version&#39;</span><span class="p">][</span><span class="s">&#39;major&#39;</span><span class="p">],</span> <span class="n">sysconfig</span><span class="p">[</span><span class="s">&#39;version&#39;</span><span class="p">][</span><span class="s">&#39;minor&#39;</span><span class="p">],</span> <span class="n">sysconfig</span><span class="p">[</span><span class="s">&#39;version&#39;</span><span class="p">][</span><span class="s">&#39;micro&#39;</span><span class="p">]])),</span>
+				<span class="s">&#39;build&#39;</span><span class="p">:</span> <span class="n">sysconfig</span><span class="p">[</span><span class="s">&#39;version&#39;</span><span class="p">][</span><span class="s">&#39;build&#39;</span><span class="p">],</span>
+				<span class="s">&#39;release&#39;</span><span class="p">:</span> <span class="n">sysconfig</span><span class="p">[</span><span class="s">&#39;version&#39;</span><span class="p">][</span><span class="s">&#39;release&#39;</span><span class="p">],</span>
+				<span class="s">&#39;engine&#39;</span><span class="p">:</span> <span class="s">&#39;Providence/Clarity::v1.1 Embedded&#39;</span>
+			<span class="p">}</span>
+
+		<span class="p">}</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-25'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-25">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">decode_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_type</span><span class="p">,</span> <span class="n">dictionary</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Decode a request. &#39;&#39;&#39;</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-26'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-26">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="k">def</span> <span class="nf">decode_dictionary</span><span class="p">(</span><span class="n">message_type</span><span class="p">,</span> <span class="n">dictionary</span><span class="p">):</span>
+			
+			<span class="sd">&#39;&#39;&#39; Decode a dictionary of items (recursive). &#39;&#39;&#39;</span>
+
+			<span class="n">message</span> <span class="o">=</span> <span class="n">message_type</span><span class="p">()</span>
+			<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+				<span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+					<span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+						<span class="n">message</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+					<span class="k">continue</span>
+
+					<span class="k">try</span><span class="p">:</span>
+						<span class="n">field</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">field_by_name</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+					<span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-27'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-27">#</a>
+        </div>
+        <p>TODO(rafek): Support saving unknown values.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>						<span class="k">continue</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-28'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-28">#</a>
+        </div>
+        <p>Normalize values in to a list.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>					<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+						<span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
+							<span class="k">continue</span>
+						<span class="k">else</span><span class="p">:</span>
+							<span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+
+						<span class="n">valid_value</span> <span class="o">=</span> <span class="p">[]</span>
+						<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+							<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">EnumField</span><span class="p">):</span>
+								<span class="n">item</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+							<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">BytesField</span><span class="p">):</span>
+								<span class="n">item</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+							<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">MessageField</span><span class="p">):</span>
+								<span class="n">item</span> <span class="o">=</span> <span class="n">decode_dictionary</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+							<span class="k">elif</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">FloatField</span><span class="p">)</span> <span class="ow">and</span>
+									<span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">long</span><span class="p">))):</span>
+								<span class="n">item</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+							<span class="n">valid_value</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+					<span class="k">if</span> <span class="n">field</span><span class="o">.</span><span class="n">repeated</span><span class="p">:</span>
+						<span class="n">existing_value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+						<span class="nb">setattr</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">valid_value</span><span class="p">)</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="nb">setattr</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">valid_value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+			<span class="k">return</span> <span class="n">message</span>
+
+		<span class="n">message</span> <span class="o">=</span> <span class="n">message_type</span><span class="p">()</span>
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+			<span class="k">return</span> <span class="n">message</span>
+		<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+			<span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+				<span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+					<span class="n">message</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+					<span class="k">continue</span>
+
+				<span class="k">try</span><span class="p">:</span>
+					<span class="n">field</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">field_by_name</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+				<span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-29'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-29">#</a>
+        </div>
+        <p>TODO(rafek): Support saving unknown values.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>					<span class="k">continue</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-30'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-30">#</a>
+        </div>
+        <p>Normalize values in to a list.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>				<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+					<span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
+						<span class="k">continue</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+
+				<span class="n">valid_value</span> <span class="o">=</span> <span class="p">[]</span>
+				<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+					<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">EnumField</span><span class="p">):</span>
+						<span class="n">item</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+					<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">BytesField</span><span class="p">):</span>
+						<span class="n">item</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+					<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">MessageField</span><span class="p">):</span>
+						<span class="n">item</span> <span class="o">=</span> <span class="n">decode_dictionary</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+					<span class="k">elif</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">FloatField</span><span class="p">)</span> <span class="ow">and</span>
+							<span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">long</span><span class="p">))):</span>
+						<span class="n">item</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+					<span class="n">valid_value</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+				<span class="k">if</span> <span class="n">field</span><span class="o">.</span><span class="n">repeated</span><span class="p">:</span>
+					<span class="n">existing_value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+					<span class="nb">setattr</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">valid_value</span><span class="p">)</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="nb">setattr</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">valid_value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+		<span class="k">return</span> <span class="n">message</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-31'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-31">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">build_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">request_type</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Build a request object. &#39;&#39;&#39;</span>
+
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">request_object</span> <span class="o">=</span> <span class="n">protojson</span><span class="o">.</span><span class="n">_load_json_module</span><span class="p">()</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">handler</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+
+			<span class="k">try</span><span class="p">:</span>
+				<span class="n">request_id</span> <span class="o">=</span> <span class="n">request_object</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span>
+				<span class="n">request_agent</span> <span class="o">=</span> <span class="n">request_object</span><span class="p">[</span><span class="s">&#39;agent&#39;</span><span class="p">]</span>
+				<span class="n">request_body</span> <span class="o">=</span> <span class="n">request_object</span><span class="p">[</span><span class="s">&#39;request&#39;</span><span class="p">]</span>
+				<span class="n">request_opts</span> <span class="o">=</span> <span class="n">request_object</span><span class="p">[</span><span class="s">&#39;opts&#39;</span><span class="p">]</span>
+			<span class="k">except</span> <span class="ne">AttributeError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="n">service_handlers</span><span class="o">.</span><span class="n">RequestError</span><span class="p">(</span><span class="s">&#39;Request is missing a valid ID, agent, request opts or request body.&#39;</span><span class="p">)</span>
+
+			<span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">request_id</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">[</span><span class="s">&#39;agent&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">request_agent</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">[</span><span class="s">&#39;opts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">request_opts</span>
+
+			<span class="n">handler</span><span class="o">.</span><span class="n">_response_envelope</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span>
+
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">decode_request</span><span class="p">(</span><span class="n">request_type</span><span class="p">,</span> <span class="n">request_body</span><span class="p">[</span><span class="s">&#39;params&#39;</span><span class="p">])</span>
+
+		<span class="k">except</span> <span class="p">(</span><span class="n">messages</span><span class="o">.</span><span class="n">ValidationError</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">DecodeError</span><span class="p">),</span> <span class="n">err</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">service_handlers</span><span class="o">.</span><span class="n">RequestError</span><span class="p">(</span><span class="s">&#39;Unable to parse request content: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">err</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-32'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-32">#</a>
+        </div>
+        <p>Class for generating/preparing new RemoteService objects</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">RemoteServiceFactory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="nd">@classmethod</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-33'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-33">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">new</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">):</span>
+		<span class="k">return</span> <span class="n">service</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-34'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-34">#</a>
+        </div>
+        <h1>BaseService</h1>
+<p>Top-level base class for remote services classes.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">BaseService</span><span class="p">(</span><span class="n">remote</span><span class="o">.</span><span class="n">Service</span><span class="p">):</span>
+	
+	<span class="sd">&#39;&#39;&#39; Top-level parent class for ProtoRPC-based API services. &#39;&#39;&#39;</span>
+	
+	<span class="n">handler</span> <span class="o">=</span> <span class="bp">None</span>
+	<span class="n">middleware</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="n">state</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;request&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="s">&#39;opts&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="s">&#39;service&#39;</span><span class="p">:</span> <span class="p">{}}</span>
+	<span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;global&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="s">&#39;module&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="s">&#39;service&#39;</span><span class="p">:</span> <span class="p">{}}</span>
+
+	<span class="nd">@webapp2.cached_property</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-35'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-35">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">globalConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Cached shortcut to services config. &#39;&#39;&#39;</span>
+		
+		<span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;apptools.services&#39;</span><span class="p">)</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-36'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-36">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">RemoteService</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-37'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-37">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">initiate_request_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Copy over request state from ProtoRPC. &#39;&#39;&#39;</span>
+		
+		<span class="nb">super</span><span class="p">(</span><span class="n">RemoteService</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">initiate_request_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-38'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-38">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">_initializeRemoteService</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Internal method for initializing a service and injecting it&#39;s config. &#39;&#39;&#39;</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-39'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-39">#</a>
+        </div>
+        <p>Copy over global, module, and service configuration</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;global&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">globalConfig</span>
+		
+		<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;moduleConfigPath&#39;</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;module&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;moduleConfigPath&#39;</span><span class="p">,</span> <span class="s">&#39;__null__&#39;</span><span class="p">),</span> <span class="p">{})</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-40'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-40">#</a>
+        </div>
+        <p>If we have a module + service config path, pull it from the module's branch</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>			<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;configPath&#39;</span><span class="p">):</span>
+				<span class="n">path</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;configPath&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+				<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+					<span class="n">fragment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;module&#39;</span><span class="p">]</span>
+					<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+						<span class="k">if</span> <span class="n">path</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="n">fragment</span><span class="p">:</span>
+							<span class="n">fragment</span> <span class="o">=</span> <span class="n">fragment</span><span class="p">[</span><span class="n">path</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+					<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fragment</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;service&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fragment</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-41'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-41">#</a>
+        </div>
+        <p>No module configuration</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="k">else</span><span class="p">:</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-42'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-42">#</a>
+        </div>
+        <p>Copy over default module config</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>			<span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;module&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;global&#39;</span><span class="p">][</span><span class="s">&#39;defaults&#39;</span><span class="p">][</span><span class="s">&#39;module&#39;</span><span class="p">]</span>
+			</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-43'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-43">#</a>
+        </div>
+        <p>If we have a service config path but no module config path...</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>			<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;configPath&#39;</span><span class="p">):</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-44'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-44">#</a>
+        </div>
+        <p>Try importing it as a top-level namespace</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>				<span class="n">toplevel</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configPath</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">toplevel</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-45'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-45">#</a>
+        </div>
+        <p>If that doesn't work, copy it over from defaults...</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>					<span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;service&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;global&#39;</span><span class="p">][</span><span class="s">&#39;defaults&#39;</span><span class="p">][</span><span class="s">&#39;service&#39;</span><span class="p">]</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;service&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">toplevel</span>
+					
+			<span class="k">else</span><span class="p">:</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-46'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-46">#</a>
+        </div>
+        <p>If we have nothing, copy over defaults...</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>				<span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;service&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;global&#39;</span><span class="p">][</span><span class="s">&#39;defaults&#39;</span><span class="p">][</span><span class="s">&#39;service&#39;</span><span class="p">]</span>
+				</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-47'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-47">#</a>
+        </div>
+        <p>Check for initialize hook</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;initialize&#39;</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-48'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-48">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">_setstate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">[</span><span class="s">&#39;service&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-49'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-49">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">_getstate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">[</span><span class="s">&#39;service&#39;</span><span class="p">]:</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">[</span><span class="s">&#39;service&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
+		<span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">default</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-50'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-50">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">_delstate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">[</span><span class="s">&#39;service&#39;</span><span class="p">]:</span>
+			<span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">[</span><span class="s">&#39;service&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-51'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-51">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_setstate</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-52'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-52">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getstate</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-53'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-53">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_delstate</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-54'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-54">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="s">&#39;&lt;RemoteService::&#39;</span><span class="o">+</span><span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__module__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span><span class="o">+</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;&gt;&#39;</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-55'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-55">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">setflag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">handler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">setflag</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-56'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-56">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">getflag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">handler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">getflag</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+			</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-57'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-57">#</a>
+        </div>
+        <h1>RemoteServiceHandler</h1>
+<p>This class is responsible for bridging a request to a remote service class, dispatching/executing to get the response, and returning it to the client.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">RemoteServiceHandler</span><span class="p">(</span><span class="n">service_handlers</span><span class="o">.</span><span class="n">ServiceHandler</span><span class="p">):</span>
+	
+	<span class="sd">&#39;&#39;&#39; Handler for responding to remote API requests. &#39;&#39;&#39;</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-58'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-58">#</a>
+        </div>
+        <p>Request/Response Containers</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="n">_response_envelope</span> <span class="o">=</span> <span class="p">{</span>
+
+		<span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+		<span class="s">&#39;flags&#39;</span><span class="p">:</span> <span class="p">{},</span>
+		<span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;fail&#39;</span>
+
+	<span class="p">}</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-59'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-59">#</a>
+        </div>
+        <p>Config</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="nd">@webapp2.cached_property</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-60'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-60">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">servicesConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Cached shortcut to services config. &#39;&#39;&#39;</span>
+		
+		<span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;apptools.services&#39;</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-61'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-61">#</a>
+        </div>
+        <p>Log Management</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Logging shortcut. &#39;&#39;&#39;</span>
+		
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">servicesConfig</span><span class="p">[</span><span class="s">&#39;logging&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+				<span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">info</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">debug</span>
+			<span class="n">handler</span><span class="p">(</span><span class="s">&#39;ServiceHandler: &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">message</span><span class="p">))</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-62'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-62">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Error shortcut. &#39;&#39;&#39;</span>
+		
+		<span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;ServiceHandler ERROR: &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">message</span><span class="p">))</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-63'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-63">#</a>
+        </div>
+        <p>Response Flags</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">setflag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Set a flag for the response envelope, like whether the response is cached or fresh. &#39;&#39;&#39;</span>
+		
+		<span class="bp">self</span><span class="o">.</span><span class="n">_response_envelope</span><span class="p">[</span><span class="s">&#39;flags&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+		<span class="k">return</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-64'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-64">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">getflag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Retrieve the current value of an envelope flag. &#39;&#39;&#39;</span>
+		
+		<span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_response_envelope</span><span class="p">[</span><span class="s">&#39;flags&#39;</span><span class="p">]:</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_response_envelope</span><span class="p">[</span><span class="s">&#39;flags&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="bp">None</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-65'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-65">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">getflags</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Retrieve all envelope flags. &#39;&#39;&#39;</span>
+		
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_response_envelope</span><span class="p">[</span><span class="s">&#39;flags&#39;</span><span class="p">]</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-66'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-66">#</a>
+        </div>
+        <p>Envelope Access</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">setstatus</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Set the status of a response. Good choices would be things like &#39;success&#39; and &#39;error&#39;. &#39;&#39;&#39;</span>
+		
+		<span class="bp">self</span><span class="o">.</span><span class="n">_response_envelope</span><span class="p">[</span><span class="s">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">status</span>
+		<span class="k">return</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-67'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-67">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">getstatus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Get the response&#39;s current status. &#39;&#39;&#39;</span>
+		
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_response_envelope</span><span class="p">[</span><span class="s">&#39;status&#39;</span><span class="p">]</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-68'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-68">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">setid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Set the ID of the response you&#39;re sending. &#39;&#39;&#39;</span>
+		
+		<span class="bp">self</span><span class="o">.</span><span class="n">_response_envelope</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">id</span>
+		<span class="k">return</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-69'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-69">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">getid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Get the current ID of the response you&#39;re sending. &#39;&#39;&#39;</span>
+		
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_response_envelope</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-70'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-70">#</a>
+        </div>
+        <p>Middleware</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">run_post_action_middleware</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Run middleware that has a hook to run _after_ a request has been fulfilled by the RemoteService class. &#39;&#39;&#39;</span>
+
+		<span class="k">global</span> <span class="n">global_debug</span>
+		<span class="k">global</span> <span class="n">_middleware_cache</span>
+
+		<span class="n">middleware</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">servicesConfig</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;middleware&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">middleware</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">False</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">middleware</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+			<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">middleware_object</span> <span class="ow">in</span> <span class="n">service</span><span class="o">.</span><span class="n">middleware</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s">&#39;Considering &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">+</span><span class="s">&#39; middleware...&#39;</span><span class="p">)</span>
+				<span class="k">try</span><span class="p">:</span>
+
+					<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">middleware_object</span><span class="p">,</span> <span class="s">&#39;after_request&#39;</span><span class="p">):</span>
+						<span class="n">middleware_object</span><span class="o">.</span><span class="n">after_request</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">)</span>
+						<span class="k">continue</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s">&#39;Middleware &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">+</span><span class="s">&#39; does not have after_request method. Continuing.&#39;</span><span class="p">)</span>
+						<span class="k">continue</span>
+
+				<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Middleware &quot;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;&quot; raised an unhandled exception of type &quot;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;&quot;.&#39;</span><span class="p">)</span>
+					<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+						<span class="k">raise</span>
+					<span class="k">continue</span>
+
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s">&#39;Middleware is none or 0.&#39;</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-71'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-71">#</a>
+        </div>
+        <p>Remote method execution</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factory</span><span class="p">,</span> <span class="n">service</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Dispatch the remote request, and generate a response. &#39;&#39;&#39;</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-72'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-72">#</a>
+        </div>
+        <p>Unfortunately we need to access the protected attributes.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="bp">self</span><span class="o">.</span><span class="n">_ServiceHandler__factory</span> <span class="o">=</span> <span class="n">factory</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_ServiceHandler__service</span> <span class="o">=</span> <span class="n">service</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-73'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-73">#</a>
+        </div>
+        <p>Link the service and handler both ways so we can pass stuff back and forth</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="n">service</span><span class="o">.</span><span class="n">handler</span> <span class="o">=</span> <span class="bp">self</span>
+
+		<span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span>
+		<span class="n">request_method</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span>
+		<span class="n">method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_method</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="bp">None</span><span class="p">)</span>
+
+		<span class="n">service_path</span><span class="p">,</span> <span class="n">remote_method</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">route_args</span>
+
+		<span class="k">if</span> <span class="n">method</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">request_method</span><span class="p">,</span> <span class="n">service_path</span><span class="p">,</span> <span class="n">remote_method</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">run_post_action_middleware</span><span class="p">(</span><span class="n">service</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">message</span> <span class="o">=</span> <span class="s">&#39;Unsupported HTTP method: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">request_method</span>
+			<span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s">&#39;405 </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">message</span>
+
+		<span class="k">if</span> <span class="n">request_method</span> <span class="o">==</span> <span class="s">&#39;GET&#39;</span><span class="p">:</span>
+			<span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">status_int</span>
+			<span class="k">if</span> <span class="n">status</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">405</span><span class="p">,</span> <span class="mi">415</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">request</span><span class="o">.</span><span class="n">content_type</span><span class="p">:</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-74'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-74">#</a>
+        </div>
+        <p>Again, now a protected method.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>				<span class="bp">self</span><span class="o">.</span><span class="n">_ServiceHandler__show_info</span><span class="p">(</span><span class="n">service_path</span><span class="p">,</span> <span class="n">remote_method</span><span class="p">)</span>
+				</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-75'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-75">#</a>
+        </div>
+        <h1>RemoteServiceHandlerFactory</h1>
+<p>Over here, we're responsible for creating and preparing remote service handlers, which dispatch a request to a service class.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">RemoteServiceHandlerFactory</span><span class="p">(</span><span class="n">proto</span><span class="o">.</span><span class="n">ServiceHandlerFactory</span><span class="p">):</span>
+
+	<span class="sd">&#39;&#39;&#39; Factory for preparing ServiceHandlers. &#39;&#39;&#39;</span>
+
+	<span class="nd">@webapp2.cached_property</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-76'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-76">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">servicesConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Cached access to services config. &#39;&#39;&#39;</span>
+		
+		<span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;apptools.services&#39;</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-77'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-77">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Logging shortcut. &#39;&#39;&#39;</span>
+		
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">servicesConfig</span><span class="p">[</span><span class="s">&#39;logging&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+				<span class="n">message_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">info</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">message_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">debug</span>
+			<span class="n">message_handler</span><span class="p">(</span><span class="s">&#39;ServiceHandlerFactory: &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">message</span><span class="p">))</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-78'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-78">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Error shortcut. &#39;&#39;&#39;</span>
+		
+		<span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;ServiceHandlerFactory ERROR: &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+
+	<span class="nd">@classmethod</span>	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-79'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-79">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">service_factory</span><span class="p">,</span> <span class="n">parameter_prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Prepare the default setup for a service, including the appropriate RPC mappers. This is where we inject our custom JSONRPC mapper. &#39;&#39;&#39;</span>
+
+		<span class="n">factory</span> <span class="o">=</span> <span class="n">cls</span><span class="p">(</span><span class="n">service_factory</span><span class="p">)</span>
+
+		<span class="n">factory</span><span class="o">.</span><span class="n">add_request_mapper</span><span class="p">(</span><span class="n">service_handlers</span><span class="o">.</span><span class="n">ProtobufRPCMapper</span><span class="p">())</span>
+		<span class="n">factory</span><span class="o">.</span><span class="n">add_request_mapper</span><span class="p">(</span><span class="n">service_handlers</span><span class="o">.</span><span class="n">URLEncodedRPCMapper</span><span class="p">())</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-80'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-80">#</a>
+        </div>
+        <p>our nifty mapper, for correctly interpreting &amp; providing our envelope schema</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="n">factory</span><span class="o">.</span><span class="n">add_request_mapper</span><span class="p">(</span><span class="n">dialects</span><span class="o">.</span><span class="n">jsonrpc</span><span class="o">.</span><span class="n">AppJSONRPCMapper</span><span class="p">())</span>
+
+		<span class="k">return</span> <span class="n">factory</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-81'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-81">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">remote_path</span><span class="p">,</span> <span class="n">remote_method</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Handle a remote service call. &#39;&#39;&#39;</span>
+
+		<span class="k">global</span> <span class="n">_middleware_cache</span>
+		<span class="n">global_debug</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">debug</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-82'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-82">#</a>
+        </div>
+        <p>Extract response</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="n">response</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">response</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-83'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-83">#</a>
+        </div>
+        <p>Manufacture service + handler</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="n">service</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_factory</span><span class="p">()</span>
+		<span class="n">service</span><span class="o">.</span><span class="n">_initializeRemoteService</span><span class="p">()</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-84'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-84">#</a>
+        </div>
+        <p>Consider service middleware</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="n">middleware</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">servicesConfig</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;middleware&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">middleware</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">False</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">middleware</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+			<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">middleware</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s">&#39;Considering &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">+</span><span class="s">&#39; middleware...&#39;</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">cfg</span><span class="p">[</span><span class="s">&#39;enabled&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+					<span class="k">try</span><span class="p">:</span>
+						<span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_middleware_cache</span> <span class="ow">or</span> <span class="n">config</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+							<span class="n">middleware_class</span> <span class="o">=</span> <span class="n">webapp2</span><span class="o">.</span><span class="n">import_string</span><span class="p">(</span><span class="n">cfg</span><span class="p">[</span><span class="s">&#39;path&#39;</span><span class="p">])</span>
+						<span class="k">else</span><span class="p">:</span>
+							<span class="n">middleware_class</span> <span class="o">=</span> <span class="n">_middleware_cache</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+
+						<span class="n">middleware_object</span> <span class="o">=</span> <span class="n">middleware_class</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s">&#39;debug&#39;</span><span class="p">],</span> <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">servicesConfig</span><span class="p">,</span> <span class="n">opts</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;args&#39;</span><span class="p">,</span> <span class="p">{}))</span>
+						<span class="n">service</span><span class="o">.</span><span class="n">middleware</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">middleware_object</span>
+
+						<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">middleware_object</span><span class="p">,</span> <span class="s">&#39;before_request&#39;</span><span class="p">):</span>
+							<span class="n">service</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="n">middleware_object</span><span class="o">.</span><span class="n">before_request</span><span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+							<span class="k">continue</span>
+						<span class="k">else</span><span class="p">:</span>
+							<span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s">&#39;Middleware &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">+</span><span class="s">&#39; does not have pre_request method. Continuing.&#39;</span><span class="p">)</span>
+							<span class="k">continue</span>
+
+					<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Middleware &quot;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;&quot; raise an unhandled exception of type &quot;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;&quot;.&#39;</span><span class="p">)</span>
+						<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+							<span class="k">raise</span>
+						<span class="k">else</span><span class="p">:</span>
+							<span class="k">continue</span>
+
+				<span class="k">else</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s">&#39;Middleware &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">+</span><span class="s">&#39; is disabled.&#39;</span><span class="p">)</span>
+					<span class="k">continue</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s">&#39;Middleware was none or 0.&#39;</span><span class="p">)</span>
+
+		<span class="n">service_handler</span> <span class="o">=</span> <span class="n">RemoteServiceFactory</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">handler</span><span class="o">.</span><span class="n">RemoteServiceHandler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">))</span>
+		<span class="n">service_handler</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">request</span>
+		<span class="n">service_handler</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="n">response</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s">&#39;Handler prepared. Dispatching...&#39;</span><span class="p">)</span>
+
+		<span class="n">service_handler</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">)</span>
+
+</pre></div></pre></div>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>

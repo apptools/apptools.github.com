@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>middleware.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  
+  <table cellspacing=0 cellpadding=0>
+  <thead>
+    <tr>
+      <th class=docs><h1>middleware.py</h1></th>
+      <th class=code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr id='section-0'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-0">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-1'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-1">#</a>
+        </div>
+        <p>Base Imports</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">hashlib</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-2'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-2">#</a>
+        </div>
+        <p>Core APIs</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">apptools.api.cache</span> <span class="kn">import</span> <span class="n">CoreCacheAPI</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-3'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-3">#</a>
+        </div>
+        <h1>ServiceGatewayMiddleware</h1>
+<p>This base class is for middleware that must be executed before or after a remote service method.
+Abstract class representing a piece of middleware that can hook into the service RPC request flow.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">ServiceGatewayMiddleware</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-4'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-4">#</a>
+        </div>
+        <p>debug = False
+opts = {}
+config = {}</p>
+<p>def <strong>init</strong>(self, debug=False, config={}, opts={}):</p>
+<p>Take in config, whether we're in debug mode or not, and 'opts' (runtime config overrides).</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		
+		<span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">opts</span> <span class="o">=</span> <span class="n">opts</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-5'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-5">#</a>
+        </div>
+        <p>Default to NotImplemented.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">reponse</span><span class="p">):</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-6'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-6">#</a>
+        </div>
+        <p>raise NotImplemented</p>
+<h1>Middleware for monitoring individual and aggregate request statistics</h1>
+<p>class MonitoringMiddleware(ServiceGatewayMiddleware):</p>
+<p>Middleware for monitoring and reporting errors or auth failures.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-7'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-7">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">before_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+		<span class="k">return</span> <span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-8'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-8">#</a>
+        </div>
+        <p>Middleware for recording monitored data to datastore or memcache
+Middleware for recording individual or aggregate information about remote service request load.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">RecordingMiddleware</span><span class="p">(</span><span class="n">ServiceGatewayMiddleware</span><span class="p">):</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-9'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-9">#</a>
+        </div>
+        <p>def before_request(self, service, request, response):
+return (service, request, response)</p>
+<h1>Middleware for caching response messages &amp; raw JSON responses</h1>
+<p>class CachingMiddleware(ServiceGatewayMiddleware):</p>
+<p>Middleware for holding onto data so it can be retrieved faster.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="n">key</span> <span class="o">=</span> <span class="bp">None</span>	
+	<span class="n">ttl</span> <span class="o">=</span> <span class="bp">None</span>
+	<span class="n">profile</span> <span class="o">=</span> <span class="bp">None</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-10'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-10">#</a>
+        </div>
+        <p>Generate a hash representing the current request, suitable for use as a cache key.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">generateKey</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">localize</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-11'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-11">#</a>
+        </div>
+        <h1>Add service class, request URI, method and body</h1>
+<p>request_descriptor = [service.<strong>repr</strong>(), request.uri, request.method, request.body]</p>
+<h1>Add GET and POST vars if they exist</h1>
+<p>if len(request.GET) &gt; 0: request_descriptor.append(str(request.GET)) ## Add getvars
+if len(request.POST) &gt; 0: request_descriptor.append(str(request.POST)) ## Add postvars</p>
+<p>return hashlib.sha256(reduce(lambda x, y: x+':::'+y, request_descriptor)).hexdigest()</p>
+<p>def before_request(self, service, request, response):</p>
+<p>Generate a key before the request is fulfilled, check for existence in the cache, and return if available.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-12'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-12">#</a>
+        </div>
+        <p>@TODO: Clean up this file's logging...</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="k">if</span> <span class="s">&#39;caching&#39;</span> <span class="ow">in</span> <span class="n">service</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;service&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;config&#39;</span><span class="p">,</span> <span class="p">[]):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">profile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;middleware_config&#39;</span><span class="p">][</span><span class="s">&#39;caching&#39;</span><span class="p">][</span><span class="s">&#39;profiles&#39;</span><span class="p">][</span><span class="n">service</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;service&#39;</span><span class="p">][</span><span class="s">&#39;config&#39;</span><span class="p">][</span><span class="s">&#39;caching&#39;</span><span class="p">]]</span>
+
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">profile</span><span class="p">[</span><span class="s">&#39;activate&#39;</span><span class="p">][</span><span class="s">&#39;internal&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">True</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">profile</span><span class="p">[</span><span class="s">&#39;activate&#39;</span><span class="p">][</span><span class="s">&#39;response&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generateKey</span><span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;localize&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">))</span>
+				<span class="n">service</span><span class="o">.</span><span class="n">_setstate</span><span class="p">(</span><span class="s">&#39;cache_key&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
+
+		<span class="k">return</span> <span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-13'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-13">#</a>
+        </div>
+        <p>Store the request in the cache for later return.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">after_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-14'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-14">#</a>
+        </div>
+        <p>pass</p>
+<h1>Middleware for authenticating a remote client</h1>
+<p>class AuthenticationMiddleware(ServiceGatewayMiddleware):</p>
+<p>Middleware for enforcing the policy that a user (maybe only admins) must be authenticated.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-15'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-15">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">before_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+
+		<span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;SERVICE: &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">service</span><span class="p">))</span>
+		<span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;REQUEST_TOKEN: &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;token&#39;</span><span class="p">,</span> <span class="s">&#39;_NOTOKEN_&#39;</span><span class="p">)))</span>
+
+		<span class="k">return</span> <span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-16'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-16">#</a>
+        </div>
+        <p>Middleware for authorizing a remote client
+Middleware for enforcing the policy that a user must be part of a group or have a certain privilege.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">AuthorizationMiddleware</span><span class="p">(</span><span class="n">ServiceGatewayMiddleware</span><span class="p">):</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-17'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-17">#</a>
+        </div>
+        <p>def before_request(self, service, request, response):</p>
+<p>return (service, request, response)</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>

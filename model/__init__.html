@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>__init__.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  
+  <table cellspacing=0 cellpadding=0>
+  <thead>
+    <tr>
+      <th class=docs><h1>__init__.py</h1></th>
+      <th class=code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr id='section-0'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-0">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-1'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-1">#</a>
+        </div>
+        <p>NDB Imports</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">ndb</span> <span class="kn">import</span> <span class="n">key</span>
+<span class="kn">from</span> <span class="nn">ndb</span> <span class="kn">import</span> <span class="n">model</span>
+
+<span class="kn">from</span> <span class="nn">apptools.util</span> <span class="kn">import</span> <span class="n">DictProxy</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-2'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-2">#</a>
+        </div>
+        <p>App Engine Imports</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">google.appengine.ext</span> <span class="kn">import</span> <span class="n">db</span> <span class="k">as</span> <span class="n">ldb</span>
+<span class="kn">from</span> <span class="nn">google.appengine.ext</span> <span class="kn">import</span> <span class="n">blobstore</span>
+
+<span class="kn">from</span> <span class="nn">google.appengine.api</span> <span class="kn">import</span> <span class="n">datastore_types</span>
+<span class="kn">from</span> <span class="nn">google.appengine.api</span> <span class="kn">import</span> <span class="n">datastore_errors</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-3'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-3">#</a>
+        </div>
+        <p>Internal settings</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="n">_LOG_IMPORTS</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">_PATH_SEPERATOR</span> <span class="o">=</span> <span class="s">&#39;:&#39;</span>
+<span class="n">_KEY_NAME_SEPERATOR</span> <span class="o">=</span> <span class="s">&#39;//&#39;</span>
+
+<span class="n">_PATH_KEY_PROPERTY</span>	<span class="o">=</span> <span class="s">&#39;_path_&#39;</span>
+<span class="n">_CLASS_KEY_PROPERTY</span> <span class="o">=</span> <span class="s">&#39;_class_&#39;</span>
+
+<span class="n">_class_map</span> <span class="o">=</span> <span class="p">{}</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-4'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-4">#</a>
+        </div>
+        <h1>Property Classes</h1>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-5'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-5">#</a>
+        </div>
+        <p>NDB/New Style</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="n">ndb</span> <span class="o">=</span> <span class="n">DictProxy</span><span class="p">({</span>
+		<span class="s">&#39;StringProperty&#39;</span> <span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">StringProperty</span><span class="p">,</span>
+		<span class="s">&#39;TextProperty&#39;</span> <span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">TextProperty</span><span class="p">,</span>
+		<span class="s">&#39;BlobProperty&#39;</span> <span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">BlobProperty</span><span class="p">,</span>
+		<span class="s">&#39;IntegerProperty&#39;</span> <span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">IntegerProperty</span><span class="p">,</span>
+		<span class="s">&#39;FloatProperty&#39;</span> <span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">FloatProperty</span><span class="p">,</span>
+		<span class="s">&#39;BooleanProperty&#39;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">BooleanProperty</span><span class="p">,</span>
+		<span class="s">&#39;DateTimeProperty&#39;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">DateTimeProperty</span><span class="p">,</span>
+		<span class="s">&#39;TimeProperty&#39;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">TimeProperty</span><span class="p">,</span>
+		<span class="s">&#39;GeoPtProperty&#39;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">GeoPtProperty</span><span class="p">,</span>
+		<span class="s">&#39;KeyProperty&#39;</span> <span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">KeyProperty</span><span class="p">,</span>
+		<span class="s">&#39;UserProperty&#39;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">UserProperty</span><span class="p">,</span>
+		<span class="s">&#39;StructuredProperty&#39;</span> <span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">StructuredProperty</span><span class="p">,</span>
+		<span class="s">&#39;LocalStructuredProperty&#39;</span> <span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">LocalStructuredProperty</span><span class="p">,</span>
+		<span class="s">&#39;ComputedProperty&#39;</span> <span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">ComputedProperty</span><span class="p">,</span>
+		<span class="s">&#39;GenericProperty&#39;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">GenericProperty</span>
+<span class="p">})</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-6'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-6">#</a>
+        </div>
+        <p>DB/Old Style</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="n">db</span> <span class="o">=</span> <span class="n">DictProxy</span><span class="p">({</span>
+		<span class="s">&#39;StringProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">StringProperty</span><span class="p">,</span>
+		<span class="s">&#39;ByteStringProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">ByteStringProperty</span><span class="p">,</span>		
+		<span class="s">&#39;BooleanProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">BooleanProperty</span><span class="p">,</span>
+		<span class="s">&#39;IntegerProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">IntegerProperty</span><span class="p">,</span>
+		<span class="s">&#39;FloatProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">FloatProperty</span><span class="p">,</span>
+		<span class="s">&#39;DateTimeProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">DateTimeProperty</span><span class="p">,</span>
+		<span class="s">&#39;DateProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">DateProperty</span><span class="p">,</span>
+		<span class="s">&#39;TimeProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">TimeProperty</span><span class="p">,</span>
+		<span class="s">&#39;ListProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">ListProperty</span><span class="p">,</span>
+		<span class="s">&#39;StringListProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">StringListProperty</span><span class="p">,</span>
+		<span class="s">&#39;ReferenceProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">ReferenceProperty</span><span class="p">,</span>
+		<span class="s">&#39;BlobReferenceProperty&#39;</span> <span class="p">:</span> <span class="n">blobstore</span><span class="o">.</span><span class="n">BlobReferenceProperty</span><span class="p">,</span>
+		<span class="s">&#39;UserProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">UserProperty</span><span class="p">,</span>
+		<span class="s">&#39;BlobProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">BlobProperty</span><span class="p">,</span>
+		<span class="s">&#39;TextProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">TextProperty</span><span class="p">,</span>
+		<span class="s">&#39;CategoryProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">CategoryProperty</span><span class="p">,</span>
+		<span class="s">&#39;LinkProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">LinkProperty</span><span class="p">,</span>
+		<span class="s">&#39;EmailProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">EmailProperty</span><span class="p">,</span>
+		<span class="s">&#39;GeoPtProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">GeoPtProperty</span><span class="p">,</span>
+		<span class="s">&#39;IMProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">IMProperty</span><span class="p">,</span>
+		<span class="s">&#39;PhoneNumberProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">PhoneNumberProperty</span><span class="p">,</span>
+		<span class="s">&#39;PostalAddressProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">PostalAddressProperty</span><span class="p">,</span>
+		<span class="s">&#39;RatingProperty&#39;</span> <span class="p">:</span> <span class="n">ldb</span><span class="o">.</span><span class="n">RatingProperty</span>
+<span class="p">})</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-7'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-7">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">def</span> <span class="nf">property_classes</span><span class="p">(</span><span class="n">flatten</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+	<span class="n">class_lists</span> <span class="o">=</span> <span class="p">[</span><span class="n">db</span><span class="p">,</span> <span class="n">ndb</span><span class="p">]</span>
+	<span class="n">p_list</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">for</span> <span class="n">class_list</span> <span class="ow">in</span> <span class="n">class_lists</span><span class="p">:</span>
+		<span class="k">for</span> <span class="n">p_name</span><span class="p">,</span> <span class="n">p_class</span> <span class="ow">in</span> <span class="n">class_list</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+			<span class="k">if</span> <span class="n">flatten</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span> <span class="n">p_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p_name</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">flatten</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span> <span class="n">p_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">p_name</span><span class="p">,</span> <span class="n">p_class</span><span class="p">))</span>
+	<span class="k">return</span> <span class="n">p_list</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-8'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-8">#</a>
+        </div>
+        <h1>_ModelPathProperty</h1>
+<p>This property is used in PolyPro to store the model's type inheritance path.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">_ModelPathProperty</span><span class="p">(</span><span class="n">ldb</span><span class="o">.</span><span class="n">StringProperty</span><span class="p">):</span>
+	
+	<span class="sd">&#39;&#39;&#39; Stores the Python package import path from the application root, for lazy-load on search. &#39;&#39;&#39;</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-9'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-9">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">_ModelPathProperty</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-10'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-10">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="n">ldb</span><span class="o">.</span><span class="n">DerivedPropertyError</span><span class="p">(</span><span class="s">&#39;Model-path is a derived property and cannot be set.&#39;</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-11'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-11">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_instance</span><span class="p">,</span> <span class="n">model_class</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">model_instance</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span>
+		<span class="k">return</span> <span class="n">model_instance</span><span class="o">.</span><span class="n">_getModelPath</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-12'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-12">#</a>
+        </div>
+        <h1>_ClassKeyProperty</h1>
+<p>This property is used in PolyPro to store the model's class path.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">_ClassKeyProperty</span><span class="p">(</span><span class="n">ldb</span><span class="o">.</span><span class="n">ListProperty</span><span class="p">):</span>
+	
+	<span class="sd">&#39;&#39;&#39; Stores the polymodel class inheritance path. &#39;&#39;&#39;</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-13'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-13">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">_ClassKeyProperty</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span><span class="n">item_type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-14'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-14">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="n">ldb</span><span class="o">.</span><span class="n">DerivedPropertyError</span><span class="p">(</span><span class="s">&#39;Class-key is a derived property and cannot be set.&#39;</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-15'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-15">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_instance</span><span class="p">,</span> <span class="n">model_class</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">model_instance</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span>
+		<span class="k">return</span> <span class="n">model_instance</span><span class="o">.</span><span class="n">_getClassPath</span><span class="p">()</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-16'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-16">#</a>
+        </div>
+        <h1>BaseModel</h1>
+<p>This is the root base model for all AppTools-based models.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">BaseModel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="sd">&#39;&#39;&#39; Root, master, non-polymorphic data model. Everything lives under this class. &#39;&#39;&#39;</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-17'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-17">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">_getModelPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">seperator</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+		<span class="n">path</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__module__</span><span class="o">+</span><span class="s">&#39;.&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)]</span>
+
+		<span class="k">if</span> <span class="n">seperator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">seperator</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+		<span class="k">return</span> <span class="n">path</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-18'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-18">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">_getClassPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seperator</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+		<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;__class_hierarchy__&#39;</span><span class="p">):</span>
+			<span class="n">path</span> <span class="o">=</span> <span class="p">[</span><span class="n">cls</span><span class="o">.</span><span class="n">__name__</span> <span class="k">for</span> <span class="n">cls</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class_hierarchy__</span><span class="p">]</span>
+
+			<span class="k">if</span> <span class="n">seperator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+				<span class="k">return</span> <span class="n">seperator</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+			<span class="k">return</span> <span class="n">path</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="p">[]</span>
+
+</pre></div></pre></div>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>

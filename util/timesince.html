@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>timesince.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  
+  <table cellspacing=0 cellpadding=0>
+  <thead>
+    <tr>
+      <th class=docs><h1>timesince.py</h1></th>
+      <th class=code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr id='section-0'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-0">#</a>
+        </div>
+        <p>Takes two datetime objects and returns the time between d and now
+as a nicely formatted string, e.g. "10 minutes".  If d occurs after now,
+then "0 minutes" is returned.</p>
+<p>Units used are years, months, weeks, days, hours, and minutes.
+Seconds and microseconds are ignored.  Up to two adjacent units will be
+displayed.  For example, "2 weeks, 3 days" and "1 year, 3 months" are
+possible outputs, but "2 weeks, 3 hours" and "1 year, 5 days" are not.</p>
+<p>Adapted from <a href="http://blog.natbat.co.uk/archive/2003/Jun/14/time_since">http://blog.natbat.co.uk/archive/2003/Jun/14/time_since</a></p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">import</span> <span class="nn">datetime</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-1'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-1">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-2'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-2">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">def</span> <span class="nf">getword</span><span class="p">(</span><span class="n">singular</span><span class="p">,</span> <span class="n">plural</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+	
+	<span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">singular</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">plural</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-3'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-3">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">def</span> <span class="nf">timesince</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">chunks</span> <span class="o">=</span> <span class="p">(</span>
+      <span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">365</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">getword</span><span class="p">(</span><span class="s">&#39;year&#39;</span><span class="p">,</span> <span class="s">&#39;years&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)),</span>
+      <span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">30</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">getword</span><span class="p">(</span><span class="s">&#39;month&#39;</span><span class="p">,</span> <span class="s">&#39;months&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)),</span>
+      <span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">7</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">n</span> <span class="p">:</span> <span class="n">getword</span><span class="p">(</span><span class="s">&#39;week&#39;</span><span class="p">,</span> <span class="s">&#39;weeks&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)),</span>
+      <span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">n</span> <span class="p">:</span> <span class="n">getword</span><span class="p">(</span><span class="s">&#39;day&#39;</span><span class="p">,</span> <span class="s">&#39;days&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)),</span>
+      <span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">getword</span><span class="p">(</span><span class="s">&#39;hour&#39;</span><span class="p">,</span> <span class="s">&#39;hours&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)),</span>
+      <span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">getword</span><span class="p">(</span><span class="s">&#39;minute&#39;</span><span class="p">,</span> <span class="s">&#39;minutes&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+    <span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-4'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-4">#</a>
+        </div>
+        <p>Convert datetime.date to datetime.datetime for comparison.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">):</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">now</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">now</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">):</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="n">now</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">now</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">tzinfo</span><span class="p">:</span>
+            <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">LocalTimezone</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-5'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-5">#</a>
+        </div>
+        <p>ignore microsecond part of 'd' since we removed it from 'now'</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="n">delta</span> <span class="o">=</span> <span class="n">now</span> <span class="o">-</span> <span class="p">(</span><span class="n">d</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">microsecond</span><span class="p">))</span>
+    <span class="n">since</span> <span class="o">=</span> <span class="n">delta</span><span class="o">.</span><span class="n">days</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">+</span> <span class="n">delta</span><span class="o">.</span><span class="n">seconds</span>
+    <span class="k">if</span> <span class="n">since</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-6'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-6">#</a>
+        </div>
+        <p>d is in the future compared to now, stop processing.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>        <span class="k">return</span> <span class="s">u&#39;0 &#39;</span> <span class="o">+</span> <span class="s">&#39;minutes&#39;</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">seconds</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chunks</span><span class="p">):</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="n">since</span> <span class="o">//</span> <span class="n">seconds</span>
+        <span class="k">if</span> <span class="n">count</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">break</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%(number)d</span><span class="s"> </span><span class="si">%(type)s</span><span class="s">&#39;</span><span class="o">%</span> <span class="p">{</span><span class="s">&#39;number&#39;</span><span class="p">:</span> <span class="n">count</span><span class="p">,</span> <span class="s">&#39;type&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">(</span><span class="n">count</span><span class="p">)}</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-7'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-7">#</a>
+        </div>
+        <pre><code>if i + 1 &lt; len(chunks):
+    # Now get the second item
+    seconds2, name2 = chunks[i + 1]
+    count2 = (since - (seconds * count)) // seconds2
+    if count2 != 0:
+        s += ', %(number)d %(type)s' % {'number': count2, 'type': name2(count2)}
+</code></pre>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">return</span> <span class="n">s</span><span class="o">+</span><span class="s">&#39; ago&#39;</span>
+
+</pre></div></pre></div>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>

@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>core.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  
+  <table cellspacing=0 cellpadding=0>
+  <thead>
+    <tr>
+      <th class=docs><h1>core.py</h1></th>
+      <th class=code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr id='section-0'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-0">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-1'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-1">#</a>
+        </div>
+        <p>Base Imports</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">ndb</span>
+<span class="kn">import</span> <span class="nn">config</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">webapp2</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-2'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-2">#</a>
+        </div>
+        <p>Useful Datastructures</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">util</span> <span class="kn">import</span> <span class="n">DictProxy</span>
+<span class="kn">from</span> <span class="nn">util</span> <span class="kn">import</span> <span class="n">ObjectProxy</span>
+<span class="kn">from</span> <span class="nn">util</span> <span class="kn">import</span> <span class="n">CallbackProxy</span>
+<span class="kn">from</span> <span class="nn">util</span> <span class="kn">import</span> <span class="n">_loadAPIModule</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-3'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-3">#</a>
+        </div>
+        <p>Resolve a valid JSON adapter</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">try</span><span class="p">:</span>
+	<span class="kn">import</span> <span class="nn">json</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="kn">import</span> <span class="nn">simplejson</span> <span class="kn">as</span> <span class="nn">json</span>
+	<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="kn">from</span> <span class="nn">django.utils</span> <span class="kn">import</span> <span class="n">simplejson</span> <span class="k">as</span> <span class="n">json</span>
+		<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+			<span class="n">logging</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s">&#39;No compatible JSON adapter found.&#39;</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-4'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-4">#</a>
+        </div>
+        <h1>Webapp2</h1>
+<p>AppTools uses <a href="webapp-improved.appspot.com">Webapp2</a> for WSGI internals, session handling, request dispatching, and much more.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">webapp2</span> <span class="kn">import</span> <span class="n">Request</span>
+<span class="kn">from</span> <span class="nn">webapp2</span> <span class="kn">import</span> <span class="n">Response</span>
+<span class="kn">from</span> <span class="nn">webapp2</span> <span class="kn">import</span> <span class="n">RequestHandler</span>
+<span class="kn">from</span> <span class="nn">webapp2_extras</span> <span class="kn">import</span> <span class="n">jinja2</span>
+<span class="kn">from</span> <span class="nn">webapp2_extras.appengine</span> <span class="kn">import</span> <span class="n">sessions_ndb</span>
+<span class="kn">from</span> <span class="nn">webapp2_extras.appengine</span> <span class="kn">import</span> <span class="n">sessions_memcache</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-5'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-5">#</a>
+        </div>
+        <h1>Assets API</h1>
+<p>AppTools includes an <a href="api/assets.html">asset management API</a> for easily outputting links to static content.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">api</span> <span class="kn">import</span> <span class="n">assets</span>
+<span class="kn">from</span> <span class="nn">api.assets</span> <span class="kn">import</span> <span class="n">AssetsMixin</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-6'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-6">#</a>
+        </div>
+        <h1>Output API</h1>
+<p>AppTools includes an <a href="api/output.html">integrated output API</a> for easily loading and executing Jinja2 templates.
+The output loader <strong>automatically defaults to compiled templates</strong> when running in production.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">api</span> <span class="kn">import</span> <span class="n">output</span>
+<span class="kn">from</span> <span class="nn">api.output</span> <span class="kn">import</span> <span class="n">ModuleLoader</span>
+<span class="kn">from</span> <span class="nn">api.output</span> <span class="kn">import</span> <span class="n">CoreOutputLoader</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-7'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-7">#</a>
+        </div>
+        <h1>AppEngine API Bridge</h1>
+<p>Lazy-loaded access to services, accessible from any apptools-based remote service, handler, model class or pipeline.
+Access this bridge from any class that extends BaseHandler, BaseService, BasePipeline or BaseModel via <code>self.api</code>.</p>
+<p>Example: <code>self.api.memcache.get(&lt;samplekey&gt;)</code></p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="n">_apibridge</span> <span class="o">=</span> <span class="n">CallbackProxy</span><span class="p">(</span><span class="n">_loadAPIModule</span><span class="p">,</span> <span class="p">{</span>
+
+	<span class="s">&#39;db&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;google.appengine.ext&#39;</span><span class="p">,</span> <span class="s">&#39;db&#39;</span><span class="p">),</span>
+	<span class="s">&#39;xmpp&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;google.appengine.api&#39;</span><span class="p">,</span> <span class="s">&#39;xmpp&#39;</span><span class="p">),</span>
+	<span class="s">&#39;mail&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;google.appengine.api&#39;</span><span class="p">,</span> <span class="s">&#39;mail&#39;</span><span class="p">),</span>
+	<span class="s">&#39;oauth&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;google.appengine.api&#39;</span><span class="p">,</span> <span class="s">&#39;oauth&#39;</span><span class="p">),</span>
+	<span class="s">&#39;users&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;google.appengine.api&#39;</span><span class="p">,</span> <span class="s">&#39;users&#39;</span><span class="p">),</span>
+	<span class="s">&#39;images&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;google.appengine.api&#39;</span><span class="p">,</span> <span class="s">&#39;images&#39;</span><span class="p">),</span>
+	<span class="s">&#39;channel&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;google.appengine.api&#39;</span><span class="p">,</span> <span class="s">&#39;channel&#39;</span><span class="p">),</span>
+	<span class="s">&#39;backends&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;google.appengine.api&#39;</span><span class="p">,</span> <span class="s">&#39;backends&#39;</span><span class="p">),</span>
+	<span class="s">&#39;memcache&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;google.appengine.api&#39;</span><span class="p">,</span> <span class="s">&#39;memcache&#39;</span><span class="p">),</span>
+	<span class="s">&#39;urlfetch&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;google.appengine.api&#39;</span><span class="p">,</span> <span class="s">&#39;urlfetch&#39;</span><span class="p">),</span>
+	<span class="s">&#39;blobstore&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;google.appengine.ext&#39;</span><span class="p">,</span> <span class="s">&#39;blobstore&#39;</span><span class="p">),</span>
+	<span class="s">&#39;taskqueue&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;google.appengine.api&#39;</span><span class="p">,</span> <span class="s">&#39;taskqueue&#39;</span><span class="p">),</span>
+	<span class="s">&#39;capabilities&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;google.appengine.api&#39;</span><span class="p">,</span> <span class="s">&#39;capabilities&#39;</span><span class="p">),</span>
+	<span class="s">&#39;identity&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;google.appengine.api&#39;</span><span class="p">,</span> <span class="s">&#39;app_identity&#39;</span><span class="p">),</span>
+	<span class="s">&#39;multitenancy&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;google.appengine.api&#39;</span><span class="p">,</span> <span class="s">&#39;namespace_manager&#39;</span><span class="p">),</span>
+	<span class="s">&#39;matcher&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;google.appengine.api&#39;</span><span class="p">,</span> <span class="s">&#39;prospective_search&#39;</span><span class="p">)</span>
+
+<span class="p">})</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-8'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-8">#</a>
+        </div>
+        <h1>AppEngine Libraries Bridge</h1>
+<p>Lazy-loaded bridge to common GAE libraries, with
+<a href="http://code.google.com/p/appengine-ndb-experiment/">NDB</a>,
+<a href="http://code.google.com/p/appengine-mapreduce/">Map/Reduce</a>, and
+<a href="http://code.google.com/p/appengine-pipeline/">Pipelines</a> built in</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="n">_extbridge</span> <span class="o">=</span> <span class="n">CallbackProxy</span><span class="p">(</span><span class="n">_loadAPIModule</span><span class="p">,</span> <span class="p">{</span>
+
+	<span class="s">&#39;ndb&#39;</span><span class="p">:</span> <span class="s">&#39;ndb&#39;</span><span class="p">,</span>
+	<span class="s">&#39;pipelines&#39;</span><span class="p">:</span> <span class="s">&#39;pipeline&#39;</span><span class="p">,</span> 
+	<span class="s">&#39;mapreduce&#39;</span><span class="p">:</span> <span class="s">&#39;mapreduce&#39;</span><span class="p">,</span>
+
+<span class="p">})</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-9'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-9">#</a>
+        </div>
+        <h1>Utility Library Bridge</h1>
+<p>Lazy-loaded bridge to useful utility libraries, with
+<a href="http://wtforms.simplecodes.com/">WTForms</a>,
+<a href="util/timesince.html">timesince</a>,
+<a href="util/byteconvert.html">byteconvert</a>, and
+<a href="util/httpagentparser.html">httpagentparser</a> built in</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="n">_utilbridge</span> <span class="o">=</span> <span class="n">CallbackProxy</span><span class="p">(</span><span class="n">_loadAPIModule</span><span class="p">,</span> <span class="p">{</span>
+	
+	<span class="s">&#39;wtforms&#39;</span><span class="p">:</span> <span class="s">&#39;wtforms&#39;</span><span class="p">,</span>
+	<span class="s">&#39;timesince&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;util&#39;</span><span class="p">,</span> <span class="s">&#39;timesince&#39;</span><span class="p">),</span>
+	<span class="s">&#39;byteconvert&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;util&#39;</span><span class="p">,</span> <span class="s">&#39;byteconvert&#39;</span><span class="p">),</span>
+	<span class="s">&#39;httpagentparser&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;util&#39;</span><span class="p">,</span> <span class="s">&#39;httpagentparser&#39;</span><span class="p">)</span>
+
+<span class="p">})</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-10'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-10">#</a>
+        </div>
+        <h1>BaseHandler</h1>
+<p>Base request handler class, with shortcuts, utilities, and base template context</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">BaseHandler</span><span class="p">(</span><span class="n">RequestHandler</span><span class="p">,</span> <span class="n">AssetsMixin</span><span class="p">):</span>
+
+	<span class="sd">&#39;&#39;&#39; Top-level parent class for request handlers in AppTools. &#39;&#39;&#39;</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-11'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-11">#</a>
+        </div>
+        <p>Class Properties</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="n">configPath</span> <span class="o">=</span> <span class="s">&#39;apptools.project&#39;</span>
+	<span class="n">minify</span> <span class="o">=</span> <span class="nb">unicode</span>
+	<span class="n">response</span> <span class="o">=</span> <span class="n">Response</span>
+	<span class="n">context</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="n">uagent</span> <span class="o">=</span> <span class="p">{}</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-12'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-12">#</a>
+        </div>
+        <p>Bridge shortcuts</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="n">api</span> <span class="o">=</span> <span class="n">_apibridge</span>
+	<span class="n">ext</span> <span class="o">=</span> <span class="n">_extbridge</span>
+	<span class="n">util</span> <span class="o">=</span> <span class="n">_utilbridge</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-13'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-13">#</a>
+        </div>
+        <p>Base HTTP Headers</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="n">baseHeaders</span> <span class="o">=</span> <span class="p">{</span>
+		
+		<span class="s">&#39;Cache-Control&#39;</span><span class="p">:</span> <span class="s">&#39;no-cache&#39;</span><span class="p">,</span> <span class="c"># Stop caching of responses from Python, by default</span>
+		<span class="s">&#39;X-Platform&#39;</span><span class="p">:</span> <span class="s">&#39;AppTools/ProvidenceClarity-Embedded&#39;</span><span class="p">,</span> <span class="c"># Indicate the platform that is serving this request</span>
+		<span class="s">&#39;X-Powered-By&#39;</span><span class="p">:</span> <span class="s">&#39;Google App Engine/1.5.5-prerelease&#39;</span><span class="p">,</span> <span class="c"># Indicate the SDK version</span>
+		<span class="s">&#39;X-UA-Compatible&#39;</span><span class="p">:</span> <span class="s">&#39;IE=edge,chrome=1&#39;</span> <span class="c"># Enable compatibility with Chrome Frame, and force IE to render with the latest engine</span>
+
+	<span class="p">}</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-14'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-14">#</a>
+        </div>
+        <p>Base template context - available to every template except macros (for that, see template globals)</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="nd">@webapp2.cached_property</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-15'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-15">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">baseContext</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Base template context - available to every template at runtime. &#39;&#39;&#39;</span>
+
+		<span class="k">return</span> <span class="p">{</span>
+							
+			<span class="s">&#39;util&#39;</span><span class="p">:</span> <span class="p">{</span> <span class="c"># Utility stuff</span>
+
+				<span class="s">&#39;request&#39;</span><span class="p">:</span> <span class="p">{</span> <span class="c"># Request Object</span>
+			
+					<span class="s">&#39;env&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">environ</span><span class="p">,</span>
+					<span class="s">&#39;body&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">body</span><span class="p">,</span>
+					<span class="s">&#39;headers&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
+					<span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">method</span><span class="p">,</span>
+					<span class="s">&#39;scheme&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">scheme</span><span class="p">,</span>
+					<span class="s">&#39;remote_user&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_user</span><span class="p">,</span>
+					<span class="s">&#39;remote_addr&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_addr</span><span class="p">,</span>
+					<span class="s">&#39;host&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
+					<span class="s">&#39;host_url&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">host_url</span><span class="p">,</span>
+					<span class="s">&#39;path&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+					<span class="s">&#39;query_string&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">query_string</span><span class="p">,</span>
+					<span class="s">&#39;hash&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;REQUEST_ID_HASH&#39;</span><span class="p">),</span>
+					<span class="s">&#39;namespace&#39;</span><span class="p">:</span> <span class="n">_apibridge</span><span class="o">.</span><span class="n">multitenancy</span><span class="o">.</span><span class="n">get_namespace</span><span class="p">()</span>
+					
+				<span class="p">},</span>
+				
+				<span class="s">&#39;appengine&#39;</span><span class="p">:</span> <span class="p">{</span> <span class="c"># App Information</span>
+				
+					<span class="s">&#39;instance&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;INSTANCE_ID&#39;</span><span class="p">),</span>
+					<span class="s">&#39;current_version&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;CURRENT_VERSION_ID&#39;</span><span class="p">),</span>
+					<span class="s">&#39;datacenter&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;DATACENTER&#39;</span><span class="p">),</span>
+					<span class="s">&#39;software&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;SERVER_SOFTWARE&#39;</span><span class="p">),</span>
+					<span class="s">&#39;backend&#39;</span><span class="p">:</span> <span class="n">_apibridge</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">get_backend</span><span class="p">()</span>
+				
+				<span class="p">},</span>
+
+				<span class="s">&#39;env&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">,</span> <span class="c"># Main Environ</span>
+				<span class="s">&#39;config&#39;</span><span class="p">:</span> <span class="p">{</span> <span class="c"># Main Config</span>
+					<span class="s">&#39;get&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">,</span>
+					<span class="s">&#39;debug&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">debug</span><span class="p">,</span>
+					<span class="s">&#39;project&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_projectConfig</span>
+				<span class="p">},</span>
+				
+				<span class="s">&#39;converters&#39;</span><span class="p">:</span> <span class="p">{</span>	<span class="c"># Converters</span>
+					<span class="s">&#39;json&#39;</span><span class="p">:</span> <span class="n">json</span><span class="p">,</span> <span class="c"># SimpleJSON or Py2.7 JSON</span>
+					<span class="s">&#39;timesince&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">timesince</span><span class="p">,</span> <span class="c"># Util library for &quot;15 minutes ago&quot;-type text from datetimes</span>
+					<span class="s">&#39;byteconvert&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">byteconvert</span> <span class="c"># Util library for formatting data storage amounts</span>
+				<span class="p">},</span>
+				
+				<span class="s">&#39;random&#39;</span><span class="p">:</span> <span class="p">{</span> <span class="c"># Random</span>
+					<span class="s">&#39;random&#39;</span><span class="p">:</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">,</span>
+					<span class="s">&#39;randint&#39;</span><span class="p">:</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">,</span>
+					<span class="s">&#39;randrange&#39;</span><span class="p">:</span> <span class="n">random</span><span class="o">.</span><span class="n">randrange</span>
+				<span class="p">},</span>
+				
+				<span class="s">&#39;pprint&#39;</span><span class="p">:</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">,</span>
+			<span class="p">},</span>
+		
+			<span class="s">&#39;api&#39;</span><span class="p">:</span> <span class="p">{</span> <span class="c"># API Shortcuts</span>
+		
+				<span class="s">&#39;users&#39;</span><span class="p">:</span> <span class="p">{</span>
+					<span class="s">&#39;is_current_user_admin&#39;</span><span class="p">:</span> <span class="n">_apibridge</span><span class="o">.</span><span class="n">users</span><span class="o">.</span><span class="n">is_current_user_admin</span><span class="p">,</span>
+					<span class="s">&#39;current_user&#39;</span><span class="p">:</span> <span class="n">_apibridge</span><span class="o">.</span><span class="n">users</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">,</span>
+					<span class="s">&#39;create_login_url&#39;</span><span class="p">:</span> <span class="n">_apibridge</span><span class="o">.</span><span class="n">users</span><span class="o">.</span><span class="n">create_login_url</span><span class="p">,</span>
+					<span class="s">&#39;create_logout_url&#39;</span><span class="p">:</span> <span class="n">_apibridge</span><span class="o">.</span><span class="n">users</span><span class="o">.</span><span class="n">create_logout_url</span>
+				<span class="p">},</span>
+				<span class="s">&#39;backends&#39;</span><span class="p">:</span> <span class="n">_apibridge</span><span class="o">.</span><span class="n">backends</span><span class="p">,</span>
+				<span class="s">&#39;multitenancy&#39;</span><span class="p">:</span> <span class="n">_apibridge</span><span class="o">.</span><span class="n">multitenancy</span>
+		
+			<span class="p">},</span>
+
+			<span class="s">&#39;page&#39;</span><span class="p">:</span> <span class="p">{</span> <span class="c"># Page flags</span>
+				<span class="s">&#39;ie&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span> <span class="c"># when set to True, will serve an (ie.css)[assets/style/source/ie.html] stylesheet</span>
+				<span class="s">&#39;mobile&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span> <span class="c"># when set to True, will serve a (mobile.css)[assets/style/source/mobile.html] stylesheet</span>
+				<span class="s">&#39;appcache&#39;</span><span class="p">:</span> <span class="p">{</span> <span class="c"># enable/disable HTML5 appcaching</span>
+					<span class="s">&#39;enabled&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+					<span class="s">&#39;location&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+				<span class="p">}</span>
+			<span class="p">},</span>			
+			
+		<span class="p">}</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-16'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-16">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Sniff the Uagent header, then pass off to Webapp2. &#39;&#39;&#39;</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-17'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-17">#</a>
+        </div>
+        <p>Sniff Uagent</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;User-Agent&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+			<span class="k">try</span><span class="p">:</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-18'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-18">#</a>
+        </div>
+        <p>Pass through httpagentparser</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>				<span class="bp">self</span><span class="o">.</span><span class="n">uagent</span> <span class="o">=</span> <span class="n">httpagentparser</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;User-Agent&#39;</span><span class="p">))</span>
+			<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+				<span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&#39;Exception encountered parsing uagent: &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+				<span class="k">pass</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-19'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-19">#</a>
+        </div>
+        <p>Dispatch method (GET/POST/etc.)</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">dispatch</span><span class="p">()</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-20'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-20">#</a>
+        </div>
+        <p>Cached access to Jinja2</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="nd">@webapp2.cached_property</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-21'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-21">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">jinja2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Cached access to Jinja2. &#39;&#39;&#39;</span>
+		
+		<span class="k">return</span> <span class="n">jinja2</span><span class="o">.</span><span class="n">get_jinja2</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">,</span> <span class="n">factory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">jinja2EnvironmentFactory</span><span class="p">)</span>
+		
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-22'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-22">#</a>
+        </div>
+        <p>Returns a prepared Jinja2 environment.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">jinja2EnvironmentFactory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Returns a prepared Jinja2 environment. &#39;&#39;&#39;</span>
+
+		<span class="n">templates_compiled_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jinjaConfig</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;compiled_path&#39;</span><span class="p">)</span>
+		<span class="n">use_compiled</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jinjaConfig</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="s">&#39;force_compiled&#39;</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">templates_compiled_target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">use_compiled</span><span class="p">:</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-23'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-23">#</a>
+        </div>
+        <p>Use precompiled templates loaded from a module or zip.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>			<span class="n">loader</span> <span class="o">=</span> <span class="n">ModuleLoader</span><span class="p">(</span><span class="n">templates_compiled_target</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">loader</span> <span class="o">=</span> <span class="n">CoreOutputLoader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jinjaConfig</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;template_path&#39;</span><span class="p">))</span>
+
+		<span class="n">j2cfg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jinjaConfig</span>
+		<span class="n">j2cfg</span><span class="p">[</span><span class="s">&#39;environment_args&#39;</span><span class="p">][</span><span class="s">&#39;loader&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">loader</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-24'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-24">#</a>
+        </div>
+        <p>Inject python builtins as globals, so they are available to macros</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-25'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-25">#</a>
+        </div>
+        <p><strong>Ever wanted your favorite Python builtins available in your template?</strong> Look ma!</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="n">j2cfg</span><span class="p">[</span><span class="s">&#39;globals&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+		
+			<span class="s">&#39;all&#39;</span><span class="p">:</span> <span class="nb">all</span><span class="p">,</span> <span class="s">&#39;any&#39;</span><span class="p">:</span> <span class="nb">any</span><span class="p">,</span>
+			<span class="s">&#39;int&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="s">&#39;str&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+			<span class="s">&#39;len&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">,</span> <span class="s">&#39;map&#39;</span><span class="p">:</span> <span class="nb">map</span><span class="p">,</span>
+			<span class="s">&#39;max&#39;</span><span class="p">:</span> <span class="nb">max</span><span class="p">,</span> <span class="s">&#39;min&#39;</span><span class="p">:</span> <span class="nb">min</span><span class="p">,</span>
+			<span class="s">&#39;zip&#39;</span><span class="p">:</span> <span class="nb">zip</span><span class="p">,</span> <span class="s">&#39;bool&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+			<span class="s">&#39;list&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="s">&#39;dict&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+			<span class="s">&#39;tuple&#39;</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="s">&#39;range&#39;</span><span class="p">:</span> <span class="nb">range</span><span class="p">,</span>
+			<span class="s">&#39;round&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">,</span> <span class="s">&#39;slice&#39;</span><span class="p">:</span> <span class="nb">slice</span><span class="p">,</span>
+			<span class="s">&#39;xrange&#39;</span><span class="p">:</span> <span class="nb">xrange</span><span class="p">,</span> <span class="s">&#39;filter&#39;</span><span class="p">:</span> <span class="nb">filter</span><span class="p">,</span>
+			<span class="s">&#39;reduce&#39;</span><span class="p">:</span> <span class="nb">reduce</span><span class="p">,</span> <span class="s">&#39;sorted&#39;</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">,</span>
+			<span class="s">&#39;unicode&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">,</span>	<span class="s">&#39;reversed&#39;</span><span class="p">:</span> <span class="nb">reversed</span><span class="p">,</span>
+			<span class="s">&#39;isinstance&#39;</span><span class="p">:</span> <span class="nb">isinstance</span><span class="p">,</span> <span class="s">&#39;issubclass&#39;</span><span class="p">:</span> <span class="nb">issubclass</span><span class="p">,</span>
+
+			<span class="s">&#39;link&#39;</span><span class="p">:</span> <span class="n">webapp2</span><span class="o">.</span><span class="n">uri_for</span><span class="p">,</span> <span class="c"># Standalone uri_for shortcut</span>
+
+			<span class="s">&#39;asset&#39;</span><span class="p">:</span> <span class="p">{</span> <span class="c"># Bridge to the Assets API</span>
+			
+				<span class="s">&#39;url&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_asset</span><span class="p">,</span>		
+				<span class="s">&#39;image&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_img_asset</span><span class="p">,</span>
+				<span class="s">&#39;style&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_style_asset</span><span class="p">,</span>
+				<span class="s">&#39;script&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_script_asset</span>
+			
+			<span class="p">},</span>
+			
+			<span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sysConfig</span><span class="p">[</span><span class="s">&#39;version&#39;</span><span class="p">][</span><span class="s">&#39;major&#39;</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;.&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sysConfig</span><span class="p">[</span><span class="s">&#39;version&#39;</span><span class="p">][</span><span class="s">&#39;minor&#39;</span><span class="p">])</span><span class="o">+</span><span class="s">&#39; &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sysConfig</span><span class="p">[</span><span class="s">&#39;version&#39;</span><span class="p">][</span><span class="s">&#39;release&#39;</span><span class="p">])</span>
+	
+		<span class="p">}</span>
+		
+		<span class="n">environment</span> <span class="o">=</span> <span class="n">jinja2</span><span class="o">.</span><span class="n">Jinja2</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">j2cfg</span><span class="p">)</span> <span class="c"># Make &amp; return template environment</span>
+		<span class="k">return</span> <span class="n">environment</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-26'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-26">#</a>
+        </div>
+        <p>Bind runtime template context variables (overridden in sub handlers to allow injection into the template context)</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">_bindRuntimeTemplateContext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">basecontext</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Bind variables to the template context related to the current request context. &#39;&#39;&#39;</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-27'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-27">#</a>
+        </div>
+        <p>Detect if we're handling a request from IE, and if we are, tell the template context</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">uagent</span><span class="p">:</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">uagent</span><span class="p">[</span><span class="s">&#39;browser&#39;</span><span class="p">][</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;MSIE&#39;</span><span class="p">:</span>
+				<span class="n">basecontext</span><span class="p">[</span><span class="s">&#39;page&#39;</span><span class="p">][</span><span class="s">&#39;ie&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+			
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">uagent</span><span class="p">[</span><span class="s">&#39;browser&#39;</span><span class="p">][</span><span class="s">&#39;mobile&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+				<span class="n">basecontext</span><span class="p">[</span><span class="s">&#39;page&#39;</span><span class="p">][</span><span class="s">&#39;mobile&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+				
+		<span class="k">return</span> <span class="n">basecontext</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-28'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-28">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">_setcontext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Take a data structure (list of tuples, dict, or kwargs) and assign the appropriate k, v to the template context. &#39;&#39;&#39;</span>
+		
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+		
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+				<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+					<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">):</span>
+						<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">arg</span><span class="p">:</span>
+							<span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+				<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+					<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">arg</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+		<span class="k">return</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-29'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-29">#</a>
+        </div>
+        <p>Minify</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">minify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rendered_template</span><span class="p">):</span>
+		
+		<span class="sd">&#39;&#39;&#39; Minify rendered template output. Override for custom minification function or monkeypatch to &#39;unicode&#39; to disable completely. &#39;&#39;&#39;</span>
+		
+		<span class="kn">import</span> <span class="nn">slimmer</span>
+	
+		<span class="n">minify</span> <span class="o">=</span> <span class="nb">unicode</span> <span class="c">## default to unicode</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-30'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-30">#</a>
+        </div>
+        <p>Read minification config + setup minification handler</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputConfig</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;minify&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">content_type</span> <span class="o">==</span> <span class="s">&#39;text/html&#39;</span><span class="p">:</span>
+				<span class="n">minify</span> <span class="o">=</span> <span class="n">slimmer</span><span class="o">.</span><span class="n">html_slimmer</span>
+			<span class="k">elif</span> <span class="n">content_type</span> <span class="o">==</span> <span class="s">&#39;text/javascript&#39;</span><span class="p">:</span>
+				<span class="kn">from</span> <span class="nn">slimmer.js_function_slimmer</span> <span class="kn">import</span> <span class="n">slim</span> <span class="k">as</span> <span class="n">slimjs</span>
+				<span class="n">minify</span> <span class="o">=</span> <span class="n">slimjs</span>
+			<span class="k">elif</span> <span class="n">content_type</span> <span class="o">==</span> <span class="s">&#39;text/css&#39;</span><span class="p">:</span>
+				<span class="n">minify</span> <span class="o">=</span> <span class="n">slimmer</span><span class="o">.</span><span class="n">css_slimmer</span>
+				
+		<span class="k">return</span> <span class="n">minify</span><span class="p">(</span><span class="n">rendered_template</span><span class="p">)</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-31'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-31">#</a>
+        </div>
+        <p>Render a template, given a context, with Jinja2</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="p">{},</span> <span class="n">elements</span><span class="o">=</span><span class="p">{},</span> <span class="n">content_type</span><span class="o">=</span><span class="s">&#39;text/html&#39;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Return a response containing a rendered Jinja template. Creates a session if one doesn&#39;t exist. &#39;&#39;&#39;</span>
+		
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="n">tmp_context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseContext</span>
+			<span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_setcontext</span><span class="p">,</span> <span class="n">tmp_context</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseContext</span>
+				</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-32'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-32">#</a>
+        </div>
+        <p>Build response HTTP headers</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="n">response_headers</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseHeaders</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+			<span class="n">response_headers</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">headers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+				<span class="n">response_headers</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-33'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-33">#</a>
+        </div>
+        <p>Consider kwargs</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-34'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-34">#</a>
+        </div>
+        <p>Bind runtime-level template context</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="k">try</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bindRuntimeTemplateContext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">)</span>
+		<span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="c">## in production, the show must go on...</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">pass</span>
+							</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-35'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-35">#</a>
+        </div>
+        <p>Bind elements</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_setcontext</span><span class="p">,</span> <span class="n">elements</span><span class="p">)</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-36'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-36">#</a>
+        </div>
+        <p>Render template and write</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">jinja2</span><span class="o">.</span><span class="n">render_template</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">)))</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-37'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-37">#</a>
+        </div>
+        <p>Set response headers &amp; content type</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span> <span class="o">=</span> <span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">response_headers</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">content_type</span> <span class="o">=</span> <span class="n">content_type</span>
+		</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-38'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-38">#</a>
+        </div>
+        <p>Finished!</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>		<span class="k">return</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-39'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-39">#</a>
+        </div>
+        <h1>Config Shortcuts</h1>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="nd">@webapp2.cached_property</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-40'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-40">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>		
+
+		<span class="sd">&#39;&#39;&#39; Cached shortcut to global config &#39;&#39;&#39;</span>
+
+		<span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">config</span>
+
+	<span class="nd">@webapp2.cached_property</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-41'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-41">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">_sysConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Cached shortcut to handler config. &#39;&#39;&#39;</span>
+
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configPath</span><span class="p">)</span>
+
+	<span class="nd">@webapp2.cached_property</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-42'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-42">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">_outputConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Cached shortcut to output config. &#39;&#39;&#39;</span>
+
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configPath</span><span class="o">+</span><span class="s">&#39;.output&#39;</span><span class="p">)</span>
+
+	<span class="nd">@webapp2.cached_property</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-43'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-43">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">_projectConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Cached shortcut to project config. &#39;&#39;&#39;</span>
+
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;apptools.project&#39;</span><span class="p">)</span>
+
+	<span class="nd">@webapp2.cached_property</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-44'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-44">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">_jinjaConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Cached shortcut to Jinja2 config. &#39;&#39;&#39;</span>
+
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;webapp2_extras.jinja2&#39;</span><span class="p">)</span>
+
+</pre></div></pre></div>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>

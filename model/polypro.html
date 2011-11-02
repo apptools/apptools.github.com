@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>polypro.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  
+  <table cellspacing=0 cellpadding=0>
+  <thead>
+    <tr>
+      <th class=docs><h1>polypro.py</h1></th>
+      <th class=code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr id='section-0'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-0">#</a>
+        </div>
+        <p>This is <strong>PolyPro</strong>.</p>
+<p>Description: A modification to Model designed to introduce polymorphism,
+allowing models to inherit properties and methods from other models.
+Cannot be instantiated directly - designed only to be extended.</p>
+<p>Abstract: Once a model is created that extends PolyPro, other models
+can be created that extend the original. In Providence/Clarity, all
+polymorphic types eventually extend the 'E' model (for "Entity").</p>
+<p>When a PolyPro object is constructed, there are two special properties
+that are automatically set: <em>class_key</em> (list) and <em>class_path</em> (str).
+The class key describes the object's ancestry, and the class path stores
+the python module path to the corresponding class.</p>
+<p>Since we store the class path along with the class key, PolyPro can
+lazy-load the implementation class when an entity is pulled from the
+datastore.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-1'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-1">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">apptools.model</span> <span class="kn">import</span> <span class="n">ldb</span><span class="p">,</span> <span class="n">_ModelPathProperty</span><span class="p">,</span> <span class="n">_ClassKeyProperty</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-2'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-2">#</a>
+        </div>
+        <p>Carryover from appengine.ext.db</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">PolymorphicModel</span><span class="p">(</span><span class="n">ldb</span><span class="o">.</span><span class="n">PropertiedClass</span><span class="p">):</span>
+
+	<span class="sd">&#39;&#39;&#39; Populates properties like __root_class__ and __class_hierarchy__ and enforces logic about direct instantiation. &#39;&#39;&#39;</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-3'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-3">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+
+		<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s">&#39;PolyPro&#39;</span><span class="p">:</span>
+			<span class="nb">super</span><span class="p">(</span><span class="n">PolymorphicModel</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">map_kind</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+			<span class="k">return</span>
+
+		<span class="k">elif</span> <span class="n">PolyPro</span> <span class="ow">in</span> <span class="n">bases</span><span class="p">:</span>
+			<span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="s">&#39;__class_hierarchy__&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
+				<span class="k">raise</span> <span class="n">db</span><span class="o">.</span><span class="n">ConfigurationError</span><span class="p">((</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> cannot derive from PolyPro as &#39;</span>
+				<span class="s">&#39;__class_hierarchy__ is already defined.&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="n">cls</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+			<span class="n">cls</span><span class="o">.</span><span class="n">__class_hierarchy__</span> <span class="o">=</span> <span class="p">[</span><span class="n">cls</span><span class="p">]</span>
+			<span class="n">cls</span><span class="o">.</span><span class="n">__root_class__</span> <span class="o">=</span> <span class="n">cls</span>
+			<span class="nb">super</span><span class="p">(</span><span class="n">PolymorphicModel</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
+
+		<span class="k">else</span><span class="p">:</span>
+			<span class="nb">super</span><span class="p">(</span><span class="n">PolymorphicModel</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">map_kind</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+			<span class="n">cls</span><span class="o">.</span><span class="n">__class_hierarchy__</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">mro</span><span class="p">())</span>
+				<span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">PolyPro</span><span class="p">)</span> <span class="ow">and</span> <span class="n">c</span> <span class="o">!=</span> <span class="n">PolyPro</span><span class="p">]</span>
+
+			<span class="k">if</span> <span class="n">cls</span><span class="o">.</span><span class="n">__class_hierarchy__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">cls</span><span class="o">.</span><span class="n">__root_class__</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="n">db</span><span class="o">.</span><span class="n">ConfigurationError</span><span class="p">(</span>
+					<span class="s">&#39;</span><span class="si">%s</span><span class="s"> cannot be derived from both root classes </span><span class="si">%s</span><span class="s"> and </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>
+					<span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+					<span class="n">cls</span><span class="o">.</span><span class="n">__class_hierarchy__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+					<span class="n">cls</span><span class="o">.</span><span class="n">__root_class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">))</span>
+
+		<span class="n">_class_map</span><span class="p">[</span><span class="n">cls</span><span class="o">.</span><span class="n">class_key</span><span class="p">()]</span> <span class="o">=</span> <span class="n">cls</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-4'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-4">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">PolyPro</span><span class="p">(</span><span class="n">ldb</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+
+	<span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">PolymorphicModel</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-5'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-5">#</a>
+        </div>
+        <p>stores class inheritance/ancestry (list property)</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="n">_class_property</span> <span class="o">=</span> <span class="n">_ClassKeyProperty</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">_CLASS_KEY_PROPERTY</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-6'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-6">#</a>
+        </div>
+        <p>stores python package import path</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="n">_model_path_property</span> <span class="o">=</span> <span class="n">_ModelPathProperty</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">_PATH_KEY_PROPERTY</span><span class="p">,</span><span class="n">indexed</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-7'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-7">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+
+	 	<span class="sd">&#39;&#39;&#39; Prevents direct instantiation of PolyPro. &#39;&#39;&#39;</span>
+
+		<span class="k">if</span> <span class="n">cls</span> <span class="ow">is</span> <span class="n">PolyPro</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span> <span class="c"># raise NotImplemented</span>
+		<span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">PolyPro</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-8'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-8">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Initiates the PolyPro object. &#39;&#39;&#39;</span>
+
+		<span class="nb">super</span><span class="p">(</span><span class="n">PolyPro</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+	<span class="nd">@classmethod</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-9'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-9">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">kind</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Always return name of root class. &#39;&#39;&#39;</span>
+
+		<span class="k">if</span> <span class="n">cls</span><span class="o">.</span><span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;PolyPro&#39;</span><span class="p">:</span> <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">__name__</span>
+		<span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">class_key</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+	<span class="nd">@classmethod</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-10'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-10">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">class_key</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Returns class path (in tuple form). &#39;&#39;&#39;</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="s">&#39;__class_hierarchy__&#39;</span><span class="p">):</span>
+			<span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;Cannot determine class key without class hierarchy&#39;</span><span class="p">)</span>
+		<span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">class_name</span><span class="p">()</span> <span class="k">for</span> <span class="n">cls</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">__class_hierarchy__</span><span class="p">)</span>
+
+	<span class="nd">@classmethod</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-11'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-11">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">class_name</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Returns the name of the current class. &#39;&#39;&#39;</span>
+
+		<span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">__name__</span>
+
+	<span class="nd">@classmethod</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-12'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-12">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">path_key</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Returns the Python import path for the implementation class (in tuple form). &#39;&#39;&#39;</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">_PATH_KEY_PROPERTY</span><span class="p">):</span>
+			<span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">__module__</span><span class="o">+</span><span class="s">&#39;.&#39;</span><span class="o">+</span><span class="n">cls</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">))</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">path_t</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">_PATH_KEY_PROPERTY</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">_PATH_SEPERATOR</span><span class="p">)</span>
+			<span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path_t</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">))</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-13'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-13">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">path_module</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Returns the module part of the Python import path for the implementation class (in tuple form). &#39;&#39;&#39;</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_PATH_KEY_PROPERTY</span><span class="p">):</span>
+			<span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__module__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">))</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">path_t</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_PATH_KEY_PROPERTY</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">_PATH_SEPERATOR</span><span class="p">)</span>
+			<span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">path_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">))</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-14'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-14">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">path_module_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Returns the module part of the Python import path for the implementation class (in string form). &#39;&#39;&#39;</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_PATH_KEY_PROPERTY</span><span class="p">):</span>
+			<span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__module__</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">path_t</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_PATH_KEY_PROPERTY</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">_PATH_SEPERATOR</span><span class="p">)</span>
+			<span class="k">return</span> <span class="n">path_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+	<span class="nd">@classmethod</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-15'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-15">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">path_class</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Returns a Python &#39;class&#39; object of the implementation class. &#39;&#39;&#39;</span>
+
+		<span class="k">if</span> <span class="n">_class_map</span><span class="p">[</span><span class="n">cls</span><span class="o">.</span><span class="n">class_key</span><span class="p">()]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">_class_map</span><span class="p">[</span><span class="n">cls</span><span class="o">.</span><span class="n">class_key</span><span class="p">()]</span>
+		<span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">cls</span>
+
+	<span class="nd">@classmethod</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-16'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-16">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">from_entity</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">entity</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Overrides db.Model&#39;s from_entity to lazy-load the implementation class if it isn&#39;t in _kind_map. &#39;&#39;&#39;</span>
+
+		<span class="k">if</span><span class="p">(</span><span class="n">_PATH_KEY_PROPERTY</span> <span class="ow">in</span> <span class="n">entity</span> <span class="ow">and</span>
+		   <span class="nb">tuple</span><span class="p">(</span><span class="n">entity</span><span class="p">[</span><span class="n">_PATH_KEY_PROPERTY</span><span class="p">])</span> <span class="o">!=</span> <span class="n">cls</span><span class="o">.</span><span class="n">path_key</span><span class="p">()):</span>
+			<span class="n">key</span> <span class="o">=</span> <span class="n">entity</span><span class="p">[</span><span class="n">_PATH_KEY_PROPERTY</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="n">abspath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
+				<span class="k">if</span> <span class="n">abspath</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+					<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">abspath</span><span class="p">)</span>
+
+					<span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])),</span> <span class="nb">globals</span><span class="p">(),</span> <span class="nb">locals</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span> <span class="c">#### FIX THIS</span>
+					<span class="n">imported_class</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">key</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+					<span class="n">obj</span> <span class="o">=</span> <span class="n">imported_class</span><span class="p">()</span>
+
+					<span class="n">_class_map</span><span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">class_key</span><span class="p">()]</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">__class__</span>
+
+					<span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">from_entity</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+
+			<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="n">db</span><span class="o">.</span><span class="n">KindError</span><span class="p">(</span><span class="s">&#39;Could not import model hierarchy </span><span class="se">\&#39;</span><span class="si">%s</span><span class="se">\&#39;</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+
+		<span class="k">if</span> <span class="p">(</span><span class="n">_CLASS_KEY_PROPERTY</span> <span class="ow">in</span> <span class="n">entity</span> <span class="ow">and</span>
+			<span class="nb">tuple</span><span class="p">(</span><span class="n">entity</span><span class="p">[</span><span class="n">_CLASS_KEY_PROPERTY</span><span class="p">])</span> <span class="o">!=</span> <span class="n">cls</span><span class="o">.</span><span class="n">class_key</span><span class="p">()):</span>
+			<span class="n">key</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">entity</span><span class="p">[</span><span class="n">_CLASS_KEY_PROPERTY</span><span class="p">])</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="n">poly_class</span> <span class="o">=</span> <span class="n">_class_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+			<span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="n">db</span><span class="o">.</span><span class="n">KindError</span><span class="p">(</span><span class="s">&#39;No implementation for class </span><span class="se">\&#39;</span><span class="si">%s</span><span class="se">\&#39;</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+
+			<span class="k">return</span> <span class="n">poly_class</span><span class="o">.</span><span class="n">from_entity</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+		<span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">PolyPro</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">from_entity</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+
+	<span class="nd">@classmethod</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-17'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-17">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">class_key_as_list</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Returns class path (in list form). &#39;&#39;&#39;</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="s">&#39;__class_hierarchy__&#39;</span><span class="p">):</span>
+			<span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;Cannot determine class key without class hierarchy&#39;</span><span class="p">)</span>
+		<span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">class_name</span><span class="p">()</span> <span class="k">for</span> <span class="n">cls</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">__class_hierarchy__</span><span class="p">)</span>
+
+	<span class="nd">@classmethod</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-18'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-18">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">all</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Automatically filter queries by class name. &#39;&#39;&#39;</span>
+
+		<span class="n">query</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">PolyPro</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">cls</span> <span class="o">!=</span> <span class="n">PolyPro</span><span class="p">:</span>
+			<span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">_CLASS_KEY_PROPERTY</span> <span class="o">+</span> <span class="s">&#39; =&#39;</span><span class="p">,</span> <span class="n">cls</span><span class="o">.</span><span class="n">class_name</span><span class="p">())</span>
+		<span class="k">return</span> <span class="n">query</span>
+
+	<span class="nd">@classmethod</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-19'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-19">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">gql</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">query_string</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+
+		<span class="sd">&#39;&#39;&#39; Automatically filter GQL queries by class name. &#39;&#39;&#39;</span>
+
+		<span class="k">if</span> <span class="n">cls</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">__root_class__</span><span class="p">:</span>
+			<span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">PolyPro</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">gql</span><span class="p">(</span><span class="n">query_string</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="kn">from</span> <span class="nn">google.appengine.ext</span> <span class="kn">import</span> <span class="n">gql</span>
+
+			<span class="n">query</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">GqlQuery</span><span class="p">(</span><span class="s">&#39;SELECT * FROM </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">kind</span><span class="p">(),</span> <span class="n">query_string</span><span class="p">))</span>
+
+			<span class="n">query_filter</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;nop&#39;</span><span class="p">,[</span><span class="n">gql</span><span class="o">.</span><span class="n">Literal</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">class_name</span><span class="p">())])]</span>
+			<span class="n">query</span><span class="o">.</span><span class="n">_proto_query</span><span class="o">.</span><span class="n">filters</span><span class="p">()[(</span><span class="n">_CLASS_KEY_PROPERTY</span><span class="p">,</span> <span class="s">&#39;=&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">query_filter</span>
+			<span class="n">query</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+			<span class="k">return</span> <span class="n">query</span>
+			</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-20'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-20">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">ldb</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span> <span class="n">BaseModel</span><span class="p">):</span>
+	
+	<span class="sd">&#39;&#39;&#39; Model class for legacy datastore models. &#39;&#39;&#39;</span>
+	
+	<span class="k">pass</span>
+	
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-21'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-21">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Expando</span><span class="p">(</span><span class="n">ldb</span><span class="o">.</span><span class="n">Expando</span><span class="p">,</span> <span class="n">BaseModel</span><span class="p">):</span>
+	
+	<span class="sd">&#39;&#39;&#39; Model class for expandable (schemaless) datastore models. &#39;&#39;&#39;</span>
+	
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-22'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-22">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">NDBModel</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span> <span class="n">BaseModel</span><span class="p">):</span>
+	
+	<span class="sd">&#39;&#39;&#39; Model class for modern datastore models. &#39;&#39;&#39;</span>
+	
+	<span class="k">pass</span>
+	
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-23'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-23">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">NDBExpando</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">Expando</span><span class="p">,</span> <span class="n">BaseModel</span><span class="p">):</span>
+	
+	<span class="sd">&#39;&#39;&#39; Model class for expandable (schemaless), modern datastore models. &#39;&#39;&#39;</span>
+	
+	<span class="k">pass</span>
+	
+	
+<span class="n">Polymodel</span> <span class="o">=</span> <span class="n">PolyPro</span>
+
+</pre></div></pre></div>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>

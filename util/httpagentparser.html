@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>httpagentparser.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  
+  <table cellspacing=0 cellpadding=0>
+  <thead>
+    <tr>
+      <th class=docs><h1>httpagentparser.py</h1></th>
+      <th class=code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr id='section-0'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-0">#</a>
+        </div>
+        <p><strong>Extract client information from http user agent</strong></p>
+<p>The module does not try to detect all capabilities of browser in current form (it can easily be extended though).
+Aim is
+<em> fast
+</em> very easy to extend
+<em> reliable enough for practical purposes
+</em> and assist python web apps to detect clients.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-1'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-1">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-2'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-2">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">DetectorsHub</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="n">_known_types</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;os&#39;</span><span class="p">,</span> <span class="s">&#39;dist&#39;</span><span class="p">,</span> <span class="s">&#39;flavor&#39;</span><span class="p">,</span> <span class="s">&#39;browser&#39;</span><span class="p">]</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-3'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-3">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+        <span class="nb">dict</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">typ</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_known_types</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">typ</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">registerDetectors</span><span class="p">()</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-4'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-4">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detector</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">detector</span><span class="o">.</span><span class="n">info_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_known_types</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">detector</span><span class="o">.</span><span class="n">info_type</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">detector</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_known_types</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">detector</span><span class="o">.</span><span class="n">order</span><span class="p">,</span> <span class="n">detector</span><span class="o">.</span><span class="n">info_type</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">detector</span><span class="o">.</span><span class="n">info_type</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">detector</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-5'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-5">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">reorderByPrefs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detectors</span><span class="p">,</span> <span class="n">prefs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">prefs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">elif</span> <span class="n">prefs</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="k">return</span> <span class="n">detectors</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prefs</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">detectors</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">prefs</span> <span class="ow">and</span> <span class="n">prefs</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="ow">or</span> <span class="n">sys</span><span class="o">.</span><span class="n">maxint</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-6'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-6">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_known_types</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-7'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-7">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">registerDetectors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">detectors</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">()</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">globals</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">DetectorBase</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s">&#39;__mro__&#39;</span><span class="p">,</span> <span class="p">[])]</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">detectors</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">can_register</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-8'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-8">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">DetectorBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;&quot;</span> <span class="c"># &quot;to perform match in DetectorsHub object&quot;</span>
+    <span class="n">info_type</span> <span class="o">=</span> <span class="s">&quot;override me&quot;</span>
+    <span class="n">result_key</span> <span class="o">=</span> <span class="s">&quot;override me&quot;</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="mi">10</span> <span class="c"># 0 is highest</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&quot;string to look for&quot;</span>
+    <span class="n">skip_if_found</span> <span class="o">=</span> <span class="p">[]</span> <span class="c"># strings if present stop processin</span>
+    <span class="n">can_register</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">prefs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span> <span class="c"># dict(info_type = [name1, name2], ..)</span>
+    <span class="n">version_splitters</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;/&quot;</span><span class="p">,</span> <span class="s">&quot; &quot;</span><span class="p">]</span>
+    <span class="n">_suggested_detectors</span> <span class="o">=</span> <span class="bp">None</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-9'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-9">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">can_register</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;can_register&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">))</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-10'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-10">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">detect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-11'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-11">#</a>
+        </div>
+        <p>-&gt; True/None</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkWords</span><span class="p">(</span><span class="n">agent</span><span class="p">):</span>
+            <span class="n">result</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">info_type</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getVersion</span><span class="p">(</span><span class="n">agent</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">version</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">info_type</span><span class="p">][</span><span class="s">&#39;version&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">version</span>
+            <span class="k">return</span> <span class="bp">True</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-12'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-12">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">checkWords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-13'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-13">#</a>
+        </div>
+        <p>-&gt; True/None</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>        <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">skip_if_found</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">agent</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">look_for</span> <span class="ow">in</span> <span class="n">agent</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-14'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-14">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">getVersion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-15'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-15">#</a>
+        </div>
+        <p>-&gt; version string /None</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>        <span class="k">return</span> <span class="n">agent</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">look_for</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">version_splitters</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">version_splitters</span><span class="p">[</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-16'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-16">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">OS</span><span class="p">(</span><span class="n">DetectorBase</span><span class="p">):</span>
+    <span class="n">info_type</span> <span class="o">=</span> <span class="s">&quot;os&quot;</span>
+    <span class="n">can_register</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">version_splitters</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;;&quot;</span><span class="p">,</span> <span class="s">&quot; &quot;</span><span class="p">]</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-17'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-17">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Dist</span><span class="p">(</span><span class="n">DetectorBase</span><span class="p">):</span>
+    <span class="n">info_type</span> <span class="o">=</span> <span class="s">&quot;dist&quot;</span>
+    <span class="n">can_register</span> <span class="o">=</span> <span class="bp">False</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-18'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-18">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Flavor</span><span class="p">(</span><span class="n">DetectorBase</span><span class="p">):</span>
+    <span class="n">info_type</span> <span class="o">=</span> <span class="s">&quot;flavor&quot;</span>
+    <span class="n">can_register</span> <span class="o">=</span> <span class="bp">False</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-19'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-19">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Browser</span><span class="p">(</span><span class="n">DetectorBase</span><span class="p">):</span>
+    <span class="n">info_type</span> <span class="o">=</span> <span class="s">&quot;browser&quot;</span>
+    <span class="n">can_register</span> <span class="o">=</span> <span class="bp">False</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-20'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-20">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Macintosh</span><span class="p">(</span><span class="n">OS</span><span class="p">):</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&#39;Macintosh&#39;</span>
+    <span class="n">prefs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dist</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-21'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-21">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">getVersion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span> <span class="k">pass</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-22'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-22">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Firefox</span><span class="p">(</span><span class="n">Browser</span><span class="p">):</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&quot;Firefox&quot;</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-23'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-23">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Konqueror</span><span class="p">(</span><span class="n">Browser</span><span class="p">):</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&quot;Konqueror&quot;</span>
+    <span class="n">version_splitters</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;/&quot;</span><span class="p">,</span> <span class="s">&quot;;&quot;</span><span class="p">]</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-24'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-24">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Opera</span><span class="p">(</span><span class="n">Browser</span><span class="p">):</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&quot;Opera&quot;</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-25'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-25">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">getVersion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">agent</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">look_for</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-26'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-26">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Netscape</span><span class="p">(</span><span class="n">Browser</span><span class="p">):</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&quot;Netscape&quot;</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-27'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-27">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">MSIE</span><span class="p">(</span><span class="n">Browser</span><span class="p">):</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&quot;MSIE&quot;</span>
+    <span class="n">skip_if_found</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;Opera&quot;</span><span class="p">]</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;Microsoft Internet Explorer&quot;</span>
+    <span class="n">version_splitters</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot; &quot;</span><span class="p">,</span> <span class="s">&quot;;&quot;</span><span class="p">]</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-28'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-28">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Galeon</span><span class="p">(</span><span class="n">Browser</span><span class="p">):</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&quot;Galeon&quot;</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-29'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-29">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Safari</span><span class="p">(</span><span class="n">Browser</span><span class="p">):</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&quot;Safari&quot;</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-30'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-30">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">checkWords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span>
+        <span class="n">unless_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;Chrome&quot;</span><span class="p">,</span> <span class="s">&quot;OmniWeb&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">look_for</span> <span class="ow">in</span> <span class="n">agent</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">unless_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">agent</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">return</span> <span class="bp">True</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-31'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-31">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">getVersion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s">&quot;Version/&quot;</span> <span class="ow">in</span> <span class="n">agent</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">agent</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;Version/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">agent</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;Safari &#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="c"># Mobile Safari</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-32'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-32">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Linux</span><span class="p">(</span><span class="n">OS</span><span class="p">):</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&#39;Linux&#39;</span>
+    <span class="n">prefs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">browser</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;Firefox&quot;</span><span class="p">],</span> <span class="n">dist</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;Ubuntu&quot;</span><span class="p">,</span> <span class="s">&quot;Android&quot;</span><span class="p">],</span> <span class="n">flavor</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-33'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-33">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">getVersion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span> <span class="k">pass</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-34'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-34">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Macintosh</span><span class="p">(</span><span class="n">OS</span><span class="p">):</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&#39;Macintosh&#39;</span>
+    <span class="n">prefs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dist</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">flavor</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;MacOS&#39;</span><span class="p">])</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-35'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-35">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">getVersion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span> <span class="k">pass</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-36'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-36">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">MacOS</span><span class="p">(</span><span class="n">Flavor</span><span class="p">):</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&#39;Mac OS&#39;</span>
+    <span class="n">prefs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">browser</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;Firefox&#39;</span><span class="p">,</span> <span class="s">&#39;Opera&#39;</span><span class="p">,</span> <span class="s">&quot;Microsoft Internet Explorer&quot;</span><span class="p">])</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-37'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-37">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">getVersion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span>
+        <span class="n">version_end_chars</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;;&#39;</span><span class="p">,</span> <span class="s">&#39;)&#39;</span><span class="p">]</span>
+        <span class="n">part</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;Mac OS&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">version_end_chars</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">part</span><span class="p">:</span>
+                <span class="n">version</span> <span class="o">=</span> <span class="n">part</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">c</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">version</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="s">&#39;.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&#39;&#39;</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-38'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-38">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Windows</span><span class="p">(</span><span class="n">OS</span><span class="p">):</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&#39;Windows&#39;</span>
+    <span class="n">prefs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">browser</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;Microsoft Internet Explorer&quot;</span><span class="p">,</span> <span class="s">&#39;Firefox&#39;</span><span class="p">],</span> <span class="nb">dict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">flavor</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-39'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-39">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">getVersion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;Windows&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s">&#39;)&#39;</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;)&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">v</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-40'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-40">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Ubuntu</span><span class="p">(</span><span class="n">Dist</span><span class="p">):</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&#39;Ubuntu&#39;</span>
+    <span class="n">version_splitters</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;/&quot;</span><span class="p">,</span> <span class="s">&quot; &quot;</span><span class="p">]</span>
+    <span class="n">prefs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">browser</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;Firefox&#39;</span><span class="p">])</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-41'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-41">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Debian</span><span class="p">(</span><span class="n">Dist</span><span class="p">):</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&#39;Debian&#39;</span>
+    <span class="n">version_splitters</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;/&quot;</span><span class="p">,</span> <span class="s">&quot; &quot;</span><span class="p">]</span>
+    <span class="n">prefs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">browser</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;Firefox&#39;</span><span class="p">])</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-42'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-42">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Chrome</span><span class="p">(</span><span class="n">Browser</span><span class="p">):</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&quot;Chrome&quot;</span>
+    <span class="n">version_splitters</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;/&quot;</span><span class="p">,</span> <span class="s">&quot; &quot;</span><span class="p">]</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-43'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-43">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">ChromeOS</span><span class="p">(</span><span class="n">OS</span><span class="p">):</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&quot;CrOS&quot;</span>
+    <span class="n">version_splitters</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot; &quot;</span><span class="p">,</span> <span class="s">&quot; &quot;</span><span class="p">]</span>
+    <span class="n">prefs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">browser</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;Chrome&#39;</span><span class="p">])</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-44'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-44">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">getVersion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">agent</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">look_for</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">version_splitters</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">version_splitters</span><span class="p">[</span><span class="mi">1</span><span class="p">])[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-45'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-45">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Android</span><span class="p">(</span><span class="n">Dist</span><span class="p">):</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&#39;Android&#39;</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-46'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-46">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">getVersion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">agent</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;Android&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-47'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-47">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">IPhone</span><span class="p">(</span><span class="n">Dist</span><span class="p">):</span>
+    <span class="n">look_for</span> <span class="o">=</span> <span class="s">&#39;iPhone&#39;</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-48'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-48">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">getVersion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span>
+        <span class="n">version_end_chars</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;;&#39;</span><span class="p">,</span> <span class="s">&#39;)&#39;</span><span class="p">]</span>
+        <span class="n">part</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;Mac OS&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">version_end_chars</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">part</span><span class="p">:</span>
+                <span class="n">version</span> <span class="o">=</span> <span class="n">part</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">c</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">version</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="s">&#39;.&#39;</span><span class="p">)</span>
+
+
+<span class="n">detectorshub</span> <span class="o">=</span> <span class="n">DetectorsHub</span><span class="p">()</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-49'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-49">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">def</span> <span class="nf">detect</span><span class="p">(</span><span class="n">agent</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">prefs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">_suggested_detectors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">info_type</span> <span class="ow">in</span> <span class="n">detectorshub</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_suggested_detectors</span><span class="p">:</span>
+            <span class="n">detectors</span> <span class="o">=</span> <span class="n">detectorshub</span><span class="p">[</span><span class="n">info_type</span><span class="p">]</span>
+            <span class="n">_d_prefs</span> <span class="o">=</span> <span class="n">prefs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">info_type</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="n">detectors</span> <span class="o">=</span> <span class="n">detectorshub</span><span class="o">.</span><span class="n">reorderByPrefs</span><span class="p">(</span><span class="n">detectors</span><span class="p">,</span> <span class="n">_d_prefs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s">&quot;detector&quot;</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">():</span>
+                <span class="n">detector</span><span class="o">.</span><span class="n">_suggested_detectors</span> <span class="o">=</span> <span class="n">detectors</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">detectors</span> <span class="o">=</span> <span class="n">_suggested_detectors</span>
+        <span class="k">for</span> <span class="n">detector</span> <span class="ow">in</span> <span class="n">detectors</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;detector name: &quot;</span><span class="p">,</span> <span class="n">detector</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">if</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+                <span class="n">prefs</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">prefs</span>
+                <span class="n">_suggested_detectors</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">_suggested_detectors</span>
+                <span class="k">break</span>
+    <span class="k">return</span> <span class="n">result</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-50'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-50">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">Result</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-51'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-51">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__missing__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;&quot;</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-52'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-52">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">def</span> <span class="nf">detect</span><span class="p">(</span><span class="n">agent</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">Result</span><span class="p">()</span>
+    <span class="n">_suggested_detectors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">info_type</span> <span class="ow">in</span> <span class="n">detectorshub</span><span class="p">:</span>
+        <span class="n">detectors</span> <span class="o">=</span> <span class="n">_suggested_detectors</span> <span class="ow">or</span> <span class="n">detectorshub</span><span class="p">[</span><span class="n">info_type</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">detector</span> <span class="ow">in</span> <span class="n">detectors</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">detector</span><span class="o">.</span><span class="n">prefs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">detector</span><span class="o">.</span><span class="n">_suggested_detectors</span><span class="p">:</span>
+                    <span class="n">_suggested_detectors</span> <span class="o">=</span> <span class="n">detectorshub</span><span class="o">.</span><span class="n">reorderByPrefs</span><span class="p">(</span><span class="n">detectors</span><span class="p">,</span> <span class="n">detector</span><span class="o">.</span><span class="n">prefs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">info_type</span><span class="p">))</span>
+                    <span class="n">detector</span><span class="o">.</span><span class="n">_suggested_detectors</span> <span class="o">=</span> <span class="n">_suggested_detectors</span>
+                    <span class="k">break</span>
+    <span class="k">return</span> <span class="n">result</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-53'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-53">#</a>
+        </div>
+        <p>-&gt; (os, browser) # tuple of strings</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">def</span> <span class="nf">simple_detect</span><span class="p">(</span><span class="n">agent</span><span class="p">):</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-54'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-54">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="n">result</span> <span class="o">=</span> <span class="n">detect</span><span class="p">(</span><span class="n">agent</span><span class="p">)</span>
+    <span class="n">os_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="s">&#39;flavor&#39;</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span> <span class="n">os_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;flavor&#39;</span><span class="p">][</span><span class="s">&#39;name&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="s">&#39;dist&#39;</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span> <span class="n">os_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;dist&#39;</span><span class="p">][</span><span class="s">&#39;name&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="s">&#39;os&#39;</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span> <span class="n">os_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;os&#39;</span><span class="p">][</span><span class="s">&#39;name&#39;</span><span class="p">])</span>
+
+    <span class="n">os</span> <span class="o">=</span> <span class="n">os_list</span> <span class="ow">and</span> <span class="s">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os_list</span><span class="p">)</span> <span class="ow">or</span> <span class="s">&quot;Unknown OS&quot;</span>
+    <span class="n">os_version</span> <span class="o">=</span> <span class="n">os_list</span> <span class="ow">and</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;flavor&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">result</span><span class="p">[</span><span class="s">&#39;flavor&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;version&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span>
+    <span class="n">result</span><span class="p">[</span><span class="s">&#39;dist&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">result</span><span class="p">[</span><span class="s">&#39;dist&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;version&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;os&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">result</span><span class="p">[</span><span class="s">&#39;os&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;version&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="s">&quot;&quot;</span>
+    <span class="n">browser</span> <span class="o">=</span> <span class="s">&#39;browser&#39;</span> <span class="ow">in</span> <span class="n">result</span> <span class="ow">and</span> <span class="n">result</span><span class="p">[</span><span class="s">&#39;browser&#39;</span><span class="p">][</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="s">&#39;Unknown Browser&#39;</span>
+    <span class="n">browser_version</span> <span class="o">=</span> <span class="s">&#39;browser&#39;</span> <span class="ow">in</span> <span class="n">result</span> <span class="ow">and</span> <span class="n">result</span><span class="p">[</span><span class="s">&#39;browser&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;version&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s">&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">browser_version</span><span class="p">:</span>
+        <span class="n">browser</span> <span class="o">=</span> <span class="s">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">browser</span><span class="p">,</span> <span class="n">browser_version</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">os_version</span><span class="p">:</span>
+        <span class="n">os</span> <span class="o">=</span> <span class="s">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">os</span><span class="p">,</span> <span class="n">os_version</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">os</span><span class="p">,</span> <span class="n">browser</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">time</span>
+    <span class="kn">import</span> <span class="nn">unittest</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="p">(</span>
+<span class="p">(</span><span class="s">&quot;Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-GB; rv:1.9.0.10) Gecko/2009042315 Firefox/3.0.10&quot;</span><span class="p">,</span>
+    <span class="p">(</span><span class="s">&#39;MacOS Macintosh X 10.5&#39;</span><span class="p">,</span> <span class="s">&#39;Firefox 3.0.10&#39;</span><span class="p">),</span>
+    <span class="p">{</span><span class="s">&#39;flavor&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;X 10.5&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;MacOS&#39;</span><span class="p">},</span> <span class="s">&#39;os&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Macintosh&#39;</span><span class="p">},</span> <span class="s">&#39;browser&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;3.0.10&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Firefox&#39;</span><span class="p">}},),</span>
+<span class="p">(</span><span class="s">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_6) AppleWebKit/534.24 (KHTML, like Gecko) Chrome/11.0.696.3 Safari/534.24,gzip(gfe)&quot;</span><span class="p">,</span>
+    <span class="p">(</span><span class="s">&#39;MacOS Macintosh X 10.6.6&#39;</span><span class="p">,</span> <span class="s">&#39;Chrome 11.0.696.3&#39;</span><span class="p">),</span>
+    <span class="p">{</span><span class="s">&#39;flavor&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;X 10.6.6&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;MacOS&#39;</span><span class="p">},</span> <span class="s">&#39;os&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Macintosh&#39;</span><span class="p">},</span> <span class="s">&#39;browser&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;11.0.696.3&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Chrome&#39;</span><span class="p">}},),</span>
+<span class="p">(</span><span class="s">&quot;Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2) Gecko/20100308 Ubuntu/10.04 (lucid) Firefox/3.6 GTB7.1&quot;</span><span class="p">,</span>
+    <span class="p">(</span><span class="s">&#39;Ubuntu Linux 10.04&#39;</span><span class="p">,</span> <span class="s">&#39;Firefox 3.6&#39;</span><span class="p">),</span>
+    <span class="p">{</span><span class="s">&#39;dist&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;10.04&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Ubuntu&#39;</span><span class="p">},</span> <span class="s">&#39;os&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Linux&#39;</span><span class="p">},</span> <span class="s">&#39;browser&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;3.6&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Firefox&#39;</span><span class="p">}},),</span>
+<span class="p">(</span><span class="s">&quot;Mozilla/5.0 (Linux; U; Android 2.2.1; fr-ch; A43 Build/FROYO) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1&quot;</span><span class="p">,</span>
+    <span class="p">(</span><span class="s">&#39;Android Linux 2.2.1&#39;</span><span class="p">,</span> <span class="s">&#39;Safari 4.0&#39;</span><span class="p">),</span>
+    <span class="p">{</span><span class="s">&#39;dist&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;2.2.1&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Android&#39;</span><span class="p">},</span> <span class="s">&#39;os&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Linux&#39;</span><span class="p">},</span> <span class="s">&#39;browser&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;4.0&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Safari&#39;</span><span class="p">}},),</span>
+<span class="p">(</span><span class="s">&quot;Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1A543a Safari/419.3&quot;</span><span class="p">,</span>
+    <span class="p">(</span><span class="s">&#39;MacOS IPhone X&#39;</span><span class="p">,</span> <span class="s">&#39;Safari 3.0&#39;</span><span class="p">),</span>
+    <span class="p">{</span><span class="s">&#39;flavor&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;X&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;MacOS&#39;</span><span class="p">},</span> <span class="s">&#39;dist&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;X&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;IPhone&#39;</span><span class="p">},</span> <span class="s">&#39;browser&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;3.0&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Safari&#39;</span><span class="p">}},),</span>
+<span class="p">(</span><span class="s">&quot;Mozilla/5.0 (X11; CrOS i686 0.0.0) AppleWebKit/534.24 (KHTML, like Gecko) Chrome/11.0.696.27 Safari/534.24,gzip(gfe)&quot;</span><span class="p">,</span>
+    <span class="p">(</span><span class="s">&#39;ChromeOS 0.0.0&#39;</span><span class="p">,</span> <span class="s">&#39;Chrome 11.0.696.27&#39;</span><span class="p">),</span>
+    <span class="p">{</span><span class="s">&#39;os&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;ChromeOS&#39;</span><span class="p">,</span> <span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;0.0.0&#39;</span><span class="p">},</span> <span class="s">&#39;browser&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Chrome&#39;</span><span class="p">,</span> <span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;11.0.696.27&#39;</span><span class="p">}},),</span>
+<span class="p">(</span><span class="s">&quot;Mozilla/4.0 (compatible; MSIE 6.0; MSIE 5.5; Windows NT 5.1) Opera 7.02 [en]&quot;</span><span class="p">,</span>
+    <span class="p">(</span><span class="s">&#39;Windows NT 5.1&#39;</span><span class="p">,</span> <span class="s">&#39;Opera 7.02&#39;</span><span class="p">),</span>
+    <span class="p">{</span><span class="s">&#39;os&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Windows&#39;</span><span class="p">,</span> <span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;NT 5.1&#39;</span><span class="p">},</span> <span class="s">&#39;browser&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Opera&#39;</span><span class="p">,</span> <span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;7.02&#39;</span><span class="p">}},),</span>
+<span class="p">(</span><span class="s">&quot;Opera/9.80 (X11; Linux i686; U; en) Presto/2.9.168 Version/11.50&quot;</span><span class="p">,</span>
+    <span class="p">(</span><span class="s">&quot;Linux&quot;</span><span class="p">,</span> <span class="s">&quot;Opera 9.80&quot;</span><span class="p">),</span>
+    <span class="p">{</span><span class="s">&quot;os&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;Linux&quot;</span><span class="p">},</span> <span class="s">&quot;browser&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;Opera&quot;</span><span class="p">,</span> <span class="s">&quot;version&quot;</span><span class="p">:</span> <span class="s">&quot;9.80&quot;</span><span class="p">}},),</span>
+<span class="p">(</span><span class="s">&quot;Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20060127 Netscape/8.1&quot;</span><span class="p">,</span>
+    <span class="p">(</span><span class="s">&quot;Windows NT 5.1&quot;</span><span class="p">,</span> <span class="s">&quot;Netscape 8.1&quot;</span><span class="p">),</span>
+    <span class="p">{</span><span class="s">&#39;os&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Windows&#39;</span><span class="p">,</span> <span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;NT 5.1&#39;</span><span class="p">},</span> <span class="s">&#39;browser&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Netscape&#39;</span><span class="p">,</span> <span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;8.1&#39;</span><span class="p">}},),</span>
+<span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-55'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-55">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>    <span class="k">class</span> <span class="nc">TestHAP</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-56'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-56">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>        <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">harass_repeat</span> <span class="o">=</span> <span class="mi">1000</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-57'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-57">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>        <span class="k">def</span> <span class="nf">test_simple_detect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">agent</span><span class="p">,</span> <span class="n">simple_res</span><span class="p">,</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">simple_detect</span><span class="p">(</span><span class="n">agent</span><span class="p">),</span> <span class="n">simple_res</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-58'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-58">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>        <span class="k">def</span> <span class="nf">test_detect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">agent</span><span class="p">,</span> <span class="n">simple_res</span><span class="p">,</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">detect</span><span class="p">(</span><span class="n">agent</span><span class="p">),</span> <span class="n">res</span><span class="p">)</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-59'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-59">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>        <span class="k">def</span> <span class="nf">test_harass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">then</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">agent</span><span class="p">,</span> <span class="n">simple_res</span><span class="p">,</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">data</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">harass_repeat</span><span class="p">:</span>
+                <span class="n">detect</span><span class="p">(</span><span class="n">agent</span><span class="p">)</span>
+            <span class="n">time_taken</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">then</span>
+            <span class="n">no_of_tests</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">harass_repeat</span>
+            <span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">Time taken for </span><span class="si">%s</span><span class="s"> detecttions: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">no_of_tests</span><span class="p">,</span> <span class="n">time_taken</span><span class="p">)</span>
+            <span class="k">print</span> <span class="s">&quot;Time taken for single detecttion: &quot;</span><span class="p">,</span> <span class="n">time_taken</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">harass_repeat</span><span class="p">)</span>
+
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+
+</pre></div></pre></div>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>

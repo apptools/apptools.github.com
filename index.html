@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>apptools.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  
+  <table cellspacing=0 cellpadding=0>
+  <thead>
+    <tr>
+      <th class=docs><h1>apptools.py</h1></th>
+      <th class=code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr id='section-0'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-0">#</a>
+        </div>
+        <p>"<strong>apptools</strong>" is a library for developing webapps utilizing <a href="http://code.google.com/appengine">Google App Engine</a>'s
+<a href="http://python.org">Python</a> runtime.</p>
+<p>Apptools is <a href="http://github.com/sgammon/apptools">open source</a>, and can be used on its own, or as an integrated component in a suite of tools called the <a href="http://apptools.github.com">AppEngine Toolkit</a>.</p>
+<p>To use apptools, all you need to do is <strong>extend a few base classes</strong> into your app. The base classes provide tons of useful utilities, and handle most of the boilerplate
+work you'd do anyway at the start of a new project.</p>
+<p>There's also an <strong>integrated <a href="api/output.html">Output API</a></strong>, and a hybrid <strong>registered/unregistered <a href="api/assets.html">Assets API</a></strong>.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-1'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-1">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-2'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-2">#</a>
+        </div>
+        <h1>Base Classes</h1>
+<p>Check out the base classes:</p>
+<ul>
+<li><strong>BaseHandler</strong>, in <a href="core.html">core.py</a>: base request handler, for classes that function as a responder to HTTP requests</li>
+<li><strong>BaseModel</strong>, in <a href="model.html">model.py</a>: base database model, which (by default) uses Guido van Rossum's new <a href="http://code.google.com/p/appengine-ndb-experiment">NDB</a></li>
+<li><strong>BasePipeline</strong>, in <a href="pipeline.html">pipelines.py</a>: base pipeline class, with XMPP &amp; channel logging and more useful shortcuts, for use with the <a href="http://code.google.com/appengine-pipelines">Pipelines</a> library</li>
+<li><strong>BaseService</strong>, in <a href="services.html">services.py</a>: base remote service class, with a suite of handy decorators for easily annotating remote methods with caching, security &amp; audit policy</li>
+</ul>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">core</span> <span class="kn">import</span> <span class="n">BaseHandler</span>
+<span class="kn">from</span> <span class="nn">model</span> <span class="kn">import</span> <span class="n">BaseModel</span>
+<span class="kn">from</span> <span class="nn">services</span> <span class="kn">import</span> <span class="n">BaseService</span>
+<span class="kn">from</span> <span class="nn">pipelines</span> <span class="kn">import</span> <span class="n">BasePipeline</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-3'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-3">#</a>
+        </div>
+        <h1>Getting started</h1>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-4'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-4">#</a>
+        </div>
+        <p>To <strong>get started</strong>, begin by extending BaseHandler:</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="kn">from</span> <span class="nn">apptools</span> <span class="kn">import</span> <span class="n">BaseHandler</span></pre></div></pre></div>
+      </td>
+    </tr><tr id='section-5'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-5">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyHandler</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
+	</pre></div></pre></div>
+      </td>
+    </tr><tr id='section-6'>
+      <td class=docs>
+        <div class="octowrap">
+          <a class="octothorpe" href="#section-6">#</a>
+        </div>
+        
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><div class="highlight"><pre>	<span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">memcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;&lt;samplekey&gt;&#39;</span><span class="p">)</span>		<span class="c"># easy access to AppEngine APIs</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ext</span><span class="o">.</span><span class="n">ndb</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">Key</span><span class="p">()</span>				<span class="c"># easy access to NDB, Map/Reduce and Pipelines</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;&lt;sampletemplate&gt;&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">context</span><span class="p">)</span>	<span class="c"># built-in jinja2 integration</span>
+
+</pre></div></pre></div>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>
